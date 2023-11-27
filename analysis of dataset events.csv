@@ -1,0 +1,3480 @@
+```python
+import pandas as pd
+```
+
+<font color='lightgreen' size='8'><font color='lightgreen' size='8'> Important
+
+<font color='yellow' size='2'><font color='yellow' size='2'>
+Jika ada hal yang dirasa abu-abu, silahkan jawab jawaban dengan asumsi logis yang anda miliki.  
+Penilaian tugas tidak hanya sekedar dilihat dari hasil yang dikeluarkan, melainkan penjelasan atas langkah-langkah yang anda ambil dalam analisis. Sertakan penjelasan dengan menggunakan simbol komentar.  
+Kualitas seorang Data Analyst yang baik adalah mampu menyampaikan analisis dengan baik.
+
+Definisi data : https://www.kaggle.com/datasets/retailrocket/ecommerce-dataset?select=events.csv  
+Kita hanya akan menggunakan file events.csv jadi pastikan kalian telah memahami data dengan baik sebelum mulai mengerjakan homework ini
+
+
+```python
+df = pd.read_csv('events.csv')
+df['datetime'] = pd.to_datetime(df['timestamp'],unit='ms') # Data awalnya merupakan linux timestamp, akan dikonversikan menjadi format datetime standard pandas
+```
+
+
+```python
+df['date_key'] = df['datetime'].dt.normalize() # mereset komponen jam pada datetime sehingga hanya menggunakan tanggal
+```
+
+
+```python
+df
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>timestamp</th>
+      <th>visitorid</th>
+      <th>event</th>
+      <th>itemid</th>
+      <th>transactionid</th>
+      <th>datetime</th>
+      <th>date_key</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1433221332117</td>
+      <td>257597</td>
+      <td>view</td>
+      <td>355908</td>
+      <td>NaN</td>
+      <td>2015-06-02 05:02:12.117</td>
+      <td>2015-06-02</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1433224214164</td>
+      <td>992329</td>
+      <td>view</td>
+      <td>248676</td>
+      <td>NaN</td>
+      <td>2015-06-02 05:50:14.164</td>
+      <td>2015-06-02</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>1433221999827</td>
+      <td>111016</td>
+      <td>view</td>
+      <td>318965</td>
+      <td>NaN</td>
+      <td>2015-06-02 05:13:19.827</td>
+      <td>2015-06-02</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>1433221955914</td>
+      <td>483717</td>
+      <td>view</td>
+      <td>253185</td>
+      <td>NaN</td>
+      <td>2015-06-02 05:12:35.914</td>
+      <td>2015-06-02</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>1433221337106</td>
+      <td>951259</td>
+      <td>view</td>
+      <td>367447</td>
+      <td>NaN</td>
+      <td>2015-06-02 05:02:17.106</td>
+      <td>2015-06-02</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>2756096</th>
+      <td>1438398785939</td>
+      <td>591435</td>
+      <td>view</td>
+      <td>261427</td>
+      <td>NaN</td>
+      <td>2015-08-01 03:13:05.939</td>
+      <td>2015-08-01</td>
+    </tr>
+    <tr>
+      <th>2756097</th>
+      <td>1438399813142</td>
+      <td>762376</td>
+      <td>view</td>
+      <td>115946</td>
+      <td>NaN</td>
+      <td>2015-08-01 03:30:13.142</td>
+      <td>2015-08-01</td>
+    </tr>
+    <tr>
+      <th>2756098</th>
+      <td>1438397820527</td>
+      <td>1251746</td>
+      <td>view</td>
+      <td>78144</td>
+      <td>NaN</td>
+      <td>2015-08-01 02:57:00.527</td>
+      <td>2015-08-01</td>
+    </tr>
+    <tr>
+      <th>2756099</th>
+      <td>1438398530703</td>
+      <td>1184451</td>
+      <td>view</td>
+      <td>283392</td>
+      <td>NaN</td>
+      <td>2015-08-01 03:08:50.703</td>
+      <td>2015-08-01</td>
+    </tr>
+    <tr>
+      <th>2756100</th>
+      <td>1438400163914</td>
+      <td>199536</td>
+      <td>view</td>
+      <td>152913</td>
+      <td>NaN</td>
+      <td>2015-08-01 03:36:03.914</td>
+      <td>2015-08-01</td>
+    </tr>
+  </tbody>
+</table>
+<p>2756101 rows × 7 columns</p>
+</div>
+
+
+
+
+```python
+
+```
+
+<font color='lightgreen' size='8'><font color='lightgreen' size='8'>1. Data Preprocessing
+    
+<font color='yellow' size='2'>
+    Data pada level transaksi dan belum siap digunakan untuk analisis harian.  
+Lakukan data preprocessing dengan pandas sesuai dengan materi yang sudah ada pelajari sehingga data di rekap dalam level harian untuk setiap itemid seperti berikut : 
+
+<font color='lightgreen' size='5'> # TULIS CODE ANDA DISINI
+
+
+```python
+import pandas as pd
+
+# Membaca dataset
+df = pd.read_csv('events.csv')
+
+# Data awalnya merupakan linux timestamp, akan dikonversikan menjadi format datetime standard pandas
+df = pd.read_csv('events.csv')
+df['datetime'] = pd.to_datetime(df['timestamp'],unit='ms') 
+
+# mereset komponen jam pada datetime sehingga hanya menggunakan tanggal
+df['date_key'] = df['datetime'].dt.normalize() 
+
+# Mengonversi kolom 'datetime' menjadi tipe datetime dan menggunakannya sebagai indeks
+df['datetime'] = pd.to_datetime(df['datetime'])
+df.set_index('datetime', inplace=True)
+
+# Menggunakan groupby untuk mengelompokkan berdasarkan tanggal, item, dan jenis peristiwa, 
+# dan kemudian menghitung jumlahnya
+df_daily = df.groupby(['date_key', 'itemid', 'event']).size().unstack(fill_value=0)
+
+# Mereset indeks 
+df_daily.reset_index(inplace=True)
+df_daily = df_daily[['date_key', 'itemid', 'addtocart', 'transaction', 'view']]
+
+# Mengatur nilai kolom 'addtocart', 'transaction', dan 'view' agar memiliki satu desimal
+df_daily['addtocart'] = df_daily['addtocart'].apply(lambda x: '{:.1f}'.format(x))
+df_daily['transaction'] = df_daily['transaction'].apply(lambda x: '{:.1f}'.format(x))
+df_daily['view'] = df_daily['view'].apply(lambda x: '{:.1f}'.format(x))
+
+# Mengurutkan DataFrame berdasarkan kolom 'transaction'
+df_daily = df_daily.sort_values('transaction')
+
+# Menampilkan hasil item harian
+df_daily
+
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>event</th>
+      <th>date_key</th>
+      <th>itemid</th>
+      <th>addtocart</th>
+      <th>transaction</th>
+      <th>view</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2015-05-03</td>
+      <td>16</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>1111440</th>
+      <td>2015-07-30</td>
+      <td>48460</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>1111439</th>
+      <td>2015-07-30</td>
+      <td>48451</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>1111438</th>
+      <td>2015-07-30</td>
+      <td>48425</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <th>1111436</th>
+      <td>2015-07-30</td>
+      <td>48360</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>1463585</th>
+      <td>2015-08-30</td>
+      <td>173653</td>
+      <td>7.0</td>
+      <td>6.0</td>
+      <td>21.0</td>
+    </tr>
+    <tr>
+      <th>936990</th>
+      <td>2015-07-16</td>
+      <td>445351</td>
+      <td>7.0</td>
+      <td>6.0</td>
+      <td>42.0</td>
+    </tr>
+    <tr>
+      <th>1405839</th>
+      <td>2015-08-25</td>
+      <td>134484</td>
+      <td>6.0</td>
+      <td>6.0</td>
+      <td>17.0</td>
+    </tr>
+    <tr>
+      <th>1408811</th>
+      <td>2015-08-25</td>
+      <td>248455</td>
+      <td>7.0</td>
+      <td>6.0</td>
+      <td>45.0</td>
+    </tr>
+    <tr>
+      <th>49359</th>
+      <td>2015-05-07</td>
+      <td>51354</td>
+      <td>9.0</td>
+      <td>8.0</td>
+      <td>94.0</td>
+    </tr>
+  </tbody>
+</table>
+<p>1672186 rows × 5 columns</p>
+</div>
+
+
+
+<font color='lightgreen' size='5'> # hasil output diatas sudah sama persis dengan tabel dibawah ini, artinya langkah-langkah coding program sudah benar
+
+
+```python
+# CODE INI JANGAN DI RUN DULU
+df_daily.sort_values('transaction')
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>event</th>
+      <th>date_key</th>
+      <th>itemid</th>
+      <th>addtocart</th>
+      <th>transaction</th>
+      <th>view</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2015-05-03</td>
+      <td>16</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>20925</th>
+      <td>2015-05-05</td>
+      <td>20906</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>20926</th>
+      <td>2015-05-05</td>
+      <td>20911</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <th>20927</th>
+      <td>2015-05-05</td>
+      <td>20934</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>2.0</td>
+    </tr>
+    <tr>
+      <th>20928</th>
+      <td>2015-05-05</td>
+      <td>20981</td>
+      <td>0.0</td>
+      <td>0.0</td>
+      <td>3.0</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>1408811</th>
+      <td>2015-08-25</td>
+      <td>248455</td>
+      <td>7.0</td>
+      <td>6.0</td>
+      <td>45.0</td>
+    </tr>
+    <tr>
+      <th>1463585</th>
+      <td>2015-08-30</td>
+      <td>173653</td>
+      <td>7.0</td>
+      <td>6.0</td>
+      <td>21.0</td>
+    </tr>
+    <tr>
+      <th>936990</th>
+      <td>2015-07-16</td>
+      <td>445351</td>
+      <td>7.0</td>
+      <td>6.0</td>
+      <td>42.0</td>
+    </tr>
+    <tr>
+      <th>1405839</th>
+      <td>2015-08-25</td>
+      <td>134484</td>
+      <td>6.0</td>
+      <td>6.0</td>
+      <td>17.0</td>
+    </tr>
+    <tr>
+      <th>49359</th>
+      <td>2015-05-07</td>
+      <td>51354</td>
+      <td>9.0</td>
+      <td>8.0</td>
+      <td>94.0</td>
+    </tr>
+  </tbody>
+</table>
+<p>1672186 rows × 5 columns</p>
+</div>
+
+
+
+<font color='lightgreen' size='8'> 2. Data Analysis
+    
+<font color='yellow' size='2'> Gunakan df_daily sesuai soal nomor 1.  
+
+<font color='lightgreen' size='3'> 2.a Setelah melakukan rekap harian per produk, coba lakukan rekap harian secara total.  
+Rekap harian secara total artinya hitung berapa banyak total view yang terjadi, total addtocart yang terjadi </font>
+<font color='lightgreen' size='3'> dan total transaction yang terjadi di setiap harinya </font>
+
+<font color='lightgreen' size='3'> # Jawaban
+
+
+```python
+# Mengimpor pandas
+import pandas as pd
+
+# Mengkonversi kolom 'view', 'addtocart', dan 'transaction' menjadi tipe data numerik
+# .fillna(0) digunakan untuk menggantikan semua nilai NaN dalam kolom dengan nilai 0.
+df_daily['view'] = pd.to_numeric(df_daily['view'], errors='coerce').fillna(0)
+df_daily['addtocart'] = pd.to_numeric(df_daily['addtocart'], errors='coerce').fillna(0)
+df_daily['transaction'] = pd.to_numeric(df_daily['transaction'], errors='coerce').fillna(0)
+
+# Menggunakan groupby untuk mengelompokkan berdasarkan tanggal dan menghitung jumlahnya
+daily_total = df_daily.groupby('date_key').agg({
+    'addtocart': 'sum',
+    'transaction': 'sum',
+    'view': 'sum'
+}).reset_index()
+
+# Mengatur urutan kolom
+daily_total = daily_total[['date_key', 'view', 'addtocart', 'transaction']]
+
+# Menampilkan hasil rekap harian
+daily_total
+
+
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>event</th>
+      <th>date_key</th>
+      <th>view</th>
+      <th>addtocart</th>
+      <th>transaction</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2015-05-03</td>
+      <td>13304.0</td>
+      <td>296.0</td>
+      <td>83.0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2015-05-04</td>
+      <td>18681.0</td>
+      <td>579.0</td>
+      <td>154.0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2015-05-05</td>
+      <td>22225.0</td>
+      <td>565.0</td>
+      <td>225.0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2015-05-06</td>
+      <td>23015.0</td>
+      <td>647.0</td>
+      <td>258.0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2015-05-07</td>
+      <td>22369.0</td>
+      <td>578.0</td>
+      <td>217.0</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>134</th>
+      <td>2015-09-14</td>
+      <td>20284.0</td>
+      <td>475.0</td>
+      <td>154.0</td>
+    </tr>
+    <tr>
+      <th>135</th>
+      <td>2015-09-15</td>
+      <td>19674.0</td>
+      <td>595.0</td>
+      <td>158.0</td>
+    </tr>
+    <tr>
+      <th>136</th>
+      <td>2015-09-16</td>
+      <td>11022.0</td>
+      <td>336.0</td>
+      <td>137.0</td>
+    </tr>
+    <tr>
+      <th>137</th>
+      <td>2015-09-17</td>
+      <td>9830.0</td>
+      <td>253.0</td>
+      <td>45.0</td>
+    </tr>
+    <tr>
+      <th>138</th>
+      <td>2015-09-18</td>
+      <td>1479.0</td>
+      <td>34.0</td>
+      <td>15.0</td>
+    </tr>
+  </tbody>
+</table>
+<p>139 rows × 4 columns</p>
+</div>
+
+
+
+
+```python
+
+```
+
+<font color='lightgreen' size='3'>2.b Setelah membuat rekap harian secara total, buatlah visualisasi yang menggambarkan pergerakan setiap event di setiap harinya dan BERIKAN MINIMAL 2 INSIGHT/ANALISIS dari grafik.</font>
+
+<font color='lightgreen' size='3'> # Jawaban
+
+<font color='lightblue' size='5'> Visual-1:
+
+
+```python
+import matplotlib.pyplot as plt
+
+# Membuat tiga grafik garis terpisah
+plt.figure(figsize=(12, 6))
+
+# Grafik 1: Pergerakan View
+plt.subplot(3, 1, 1)
+plt.plot(daily_total['date_key'], daily_total['view'], label='View', color='blue')
+plt.title('Pergerakan Harian View')
+plt.ylabel('Jumlah View')
+plt.grid(True)
+plt.legend()
+
+# Grafik 2: Pergerakan Addtocart
+plt.subplot(3, 1, 2)
+plt.plot(daily_total['date_key'], daily_total['addtocart'], label='Addtocart', color='green')
+plt.title('Pergerakan Harian Addtocart')
+plt.ylabel('Jumlah Addtocart')
+plt.grid(True)
+plt.legend()
+
+# Grafik 3: Pergerakan Transaction
+plt.subplot(3, 1, 3)
+plt.plot(daily_total['date_key'], daily_total['transaction'], label='Transaction', color='red')
+plt.title('Pergerakan Harian Transaction')
+plt.xlabel('Tanggal')
+plt.ylabel('Jumlah Transaction')
+plt.grid(True)
+plt.legend()
+
+# Menampilkan plot
+plt.tight_layout()
+plt.show()
+
+```
+
+
+    
+![png](output_18_0.png)
+    
+
+
+<font color='lightgreen' size='3'>Insight-1a:
+
+<font color='lightblue'> 1. Dari grafik yang ditampilkan bisa kita lihat pergerakan harian dari setiap event baik itu view, addtocart, dan transaction kecenderungannya mendatar saja meskipun ada naik turun tetapi secara garis besar hanya bergerak di range minimum dan maksimum yang sama didalam rentang waktu 5 bulan tersebut.
+    
+<font color='lightblue'>Ini bisa menunjukkan bahwa perilaku pengguna stabil atau mungkin sedang mengalami stagnasi. Dalam konteks perilaku pengguna atau bisnis, stagnasi mengacu pada ketidakmampuan untuk mencapai pertumbuhan atau perubahan yang signifikan dalam metrik atau indikator yang diamati.
+   
+
+<font color='lightgreen' size='3'>Rekomendasi:
+
+<font color='lightblue'> Promosi dan Konten: Pertimbangkan untuk memperbarui atau meningkatkan strategi promosi dan konten. Coba menghadirkan konten yang lebih menarik atau menargetkan pasar yang lebih spesifik untuk mencoba merangsang pertumbuhan.   
+
+<font color='yellow'>
+<font color='yellow'>    
+    Kemudian untuk menggali insight lebih jelas, saya coba tambahkan garis vertikal pada grafik untuk menandai hari kerja (Senin-Jumat) sebagai berikut:
+
+
+```python
+import matplotlib.pyplot as plt
+from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY
+
+# Membuat tiga grafik garis terpisah
+plt.figure(figsize=(12, 6))
+
+# Menentukan lokasi dan format penanda tanggal
+date_format = DateFormatter('%Y-%m-%d')
+mondays = WeekdayLocator(MONDAY)
+days = DayLocator(interval=1)
+
+# Grafik 1: Pergerakan View
+plt.subplot(3, 1, 1)
+plt.plot(daily_total['date_key'], daily_total['view'], label='View', color='blue')
+plt.title('Pergerakan Harian View')
+plt.ylabel('Jumlah View')
+plt.grid(True)
+plt.legend()
+ax1 = plt.gca()
+ax1.xaxis.set_major_locator(mondays)
+ax1.xaxis.set_minor_locator(days)
+ax1.xaxis.set_major_formatter(date_format)
+
+# Menambahkan garis vertikal untuk menandai hari kerja (Senin-Jumat)
+for i, row in daily_total.iterrows():
+    if row['date_key'].weekday() < 5:  # Hari Senin hingga Jumat
+        plt.axvline(row['date_key'], color='gray', linestyle='--', alpha=0.5)
+
+# Grafik 2: Pergerakan Addtocart
+plt.subplot(3, 1, 2)
+plt.plot(daily_total['date_key'], daily_total['addtocart'], label='Addtocart', color='green')
+plt.title('Pergerakan Harian Addtocart')
+plt.ylabel('Jumlah Addtocart')
+plt.grid(True)
+plt.legend()
+ax2 = plt.gca()
+ax2.xaxis.set_major_locator(mondays)
+ax2.xaxis.set_minor_locator(days)
+ax2.xaxis.set_major_formatter(date_format)
+
+# Menambahkan garis vertikal untuk menandai hari kerja (Senin-Jumat)
+for i, row in daily_total.iterrows():
+    if row['date_key'].weekday() < 5:  # Hari Senin hingga Jumat
+        plt.axvline(row['date_key'], color='gray', linestyle='--', alpha=0.5)
+
+# Grafik 3: Pergerakan Transaction
+plt.subplot(3, 1, 3)
+plt.plot(daily_total['date_key'], daily_total['transaction'], label='Transaction', color='red')
+plt.title('Pergerakan Harian Transaction')
+plt.xlabel('Tanggal')
+plt.ylabel('Jumlah Transaction')
+plt.grid(True)
+plt.legend()
+ax3 = plt.gca()
+ax3.xaxis.set_major_locator(mondays)
+ax3.xaxis.set_minor_locator(days)
+ax3.xaxis.set_major_formatter(date_format)
+
+# Menambahkan garis vertikal untuk menandai hari kerja (Senin-Jumat)
+for i, row in daily_total.iterrows():
+    if row['date_key'].weekday() < 5:  # Hari Senin hingga Jumat
+        plt.axvline(row['date_key'], color='gray', linestyle='--', alpha=0.5)
+
+# Menampilkan plot
+plt.tight_layout()
+plt.show()
+
+```
+
+
+    
+![png](output_24_0.png)
+    
+
+
+<font color='lightgreen' size='3'>Insight-1b:
+
+<font color='lightblue'>Terlihat bahwa ternyata penurunan selalu terjadi di hari sabtu& minggu, menjadi siklus yang berulang terus menerus selama rentang 5 bulan dari bulan Mei sampai September 2015.
+
+<font color='lightgreen' size='3'>Rekomendasi:
+
+<font color='lightblue'>Eksperimen dengan Strategi Pemasaran: Cobalah berbagai strategi pemasaran dan difokuskan di hari Sabtu& minggu dan analisis hasilnya. Bisa dicoba kampanye iklan yang berbeda, konten yang lebih menarik, atau metode promosi yang berbeda untuk melihat apa yang paling efektif dalam merespons fluktuasi harian.   
+Pantau Kompetitor: Amati juga apa yang dilakukan pesaing dan pelajari apakah mereka memiliki strategi khusus untuk hari sabtu& minggu secara fluktuasi harian dan pelajari dari pengalaman mereka.
+
+
+```python
+
+```
+
+<font color='lightblue' size='5'> Visual-2:
+
+<font color='yellow'>
+<font color='yellow'> 
+untuk mengetahui korelasi antara addtocart dengan transaction sebagai berikut :
+
+
+```python
+# untuk mengetahui korelasi antara addtocart dengan transaction
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Scatter plot
+plt.figure(figsize=(8, 6))
+sns.scatterplot(data=daily_total, x='addtocart', y='transaction', color='blue', alpha=0.7)
+plt.title('Scatter Plot: Korelasi antara Addtocart dan Transaction')
+plt.xlabel('Jumlah Addtocart')
+plt.ylabel('Jumlah Transaction')
+plt.grid(True)
+plt.show()
+
+# Joint plot
+sns.jointplot(data=daily_total, x='addtocart', y='transaction', kind='scatter', color='blue', alpha=0.7)
+plt.suptitle('Joint Plot: Korelasi antara Addtocart dan Transaction')
+plt.show()
+
+```
+
+
+    
+![png](output_32_0.png)
+    
+
+
+
+    
+![png](output_32_1.png)
+    
+
+
+<font color='lightgreen' size='3'>Insight-3:
+
+<font color='lightblue'>Korelasi Positif: Terlihat bahwa terdapat korelasi positif antara jumlah "Addtocart" dan jumlah "Transaction." Artinya, ketika jumlah "Addtocart" meningkat, jumlah "Transaction" juga cenderung meningkat. Ini adalah indikasi bahwa ketika lebih banyak pengguna menambahkan produk ke keranjang belanja mereka, lebih banyak transaksi juga terjadi.
+
+<font color='lightgreen' size='3'>Rekomendasi:
+
+<font color='lightblue'>Promosi Keranjang Belanja: Mendorong pelanggan untuk menambahkan lebih banyak produk ke keranjang belanja mereka dapat meningkatkan peluang terjadinya transaksi. Juga dapat dengan cara menawarkan insentif seperti diskon tambahan untuk produk yang ada di keranjang belanja atau mengadakan kampanye "Tambahkan ke Keranjang" untuk meningkatkan jumlah "Addtocart."
+
+
+```python
+
+```
+
+<font color='lightblue' size='5'> Visual-3:
+
+<font color='yellow'>
+<font color='yellow'> 
+    Untuk mengetahui lebih jelas mengenai adanya outliers,
+<font color='yellow'> 
+    digunakan visualisasi boxplot sebagai berikut:
+
+
+```python
+import matplotlib.pyplot as plt
+
+# Data harian
+data = daily_total[['view', 'addtocart', 'transaction']]
+
+# Membuat empat subplot
+fig, axes = plt.subplots(2, 2, figsize=(12, 10))
+
+# Box plot untuk View
+axes[0, 0].boxplot(data['view'])
+axes[0, 0].set_title('Box Plot: View')
+axes[0, 0].set_ylabel('Jumlah View')
+
+# Box plot untuk Addtocart
+axes[0, 1].boxplot(data['addtocart'])
+axes[0, 1].set_title('Box Plot: Addtocart')
+axes[0, 1].set_ylabel('Jumlah Addtocart')
+
+# Box plot untuk Transaction
+axes[1, 0].boxplot(data['transaction'])
+axes[1, 0].set_title('Box Plot: Transaction')
+axes[1, 0].set_ylabel('Jumlah Transaction')
+
+# Box plot gabungan
+axes[1, 1].boxplot([data['view'], data['addtocart'], data['transaction']], labels=['View', 'Addtocart', 'Transaction'])
+axes[1, 1].set_title('Box Plot Gabungan')
+axes[1, 1].set_ylabel('Jumlah')
+axes[1, 1].set_xticklabels(['View', 'Addtocart', 'Transaction'])
+
+# Mengatur layout subplot
+plt.tight_layout()
+
+# Menampilkan plot
+plt.show()
+
+```
+
+
+    
+![png](output_40_0.png)
+    
+
+
+<font color='lightgreen' size='3'>Insight-3 beserta rekomendasi :
+
+<font color='lightgreen' size='3'>Boxplot untuk event: VIEW    
+    
+<font color='lightblue'> <u>Outliers Bawah pada Event "View":</u>  Outliers bawah dalam event "View" menunjukkan bahwa terdapat beberapa hari dengan jumlah "View" yang jauh lebih rendah dari biasanya. Hal ini bisa mengindikasikan adanya masalah yang menyebabkan pengurangan drastis dalam tampilan konten atau produk pada hari-hari tersebut.
+
+<font color='lightblue'> <u>Outliers Atas pada Event "View":</u> Outliers atas dalam event "View" menunjukkan bahwa terdapat beberapa hari dengan jumlah "View" yang jauh lebih tinggi dari biasanya. Ini bisa mengindikasikan ada beberapa hari di mana konten atau produk Anda menjadi sangat populer, mungkin karena konten yang viral atau promosi khusus.
+
+<font color='lightblue'>Rekomendasi Strategi Pemasaran dan Penjualan:
+
+<font color='lightblue'>Penyelidikan Outliers Bawah "View": Telusuri penyebab penurunan yang signifikan dalam "View" pada hari-hari tertentu. Mungkin ada masalah teknis pada situs web atau aplikasi yang perlu diperbaiki. Periksa apakah ada perubahan dalam strategi pemasaran atau promosi yang mungkin mengganggu jumlah "View."
+
+<font color='lightblue'>Rekomendasi: Perbaiki masalah teknis, pastikan bahwa konten tetap relevan, dan pertimbangkan untuk mengevaluasi strategi pemasaran Anda selama periode tersebut. Pastikan promosi dan pengiklanan tetap aktif untuk menjaga stabilitas tampilan.
+   
+<font color='lightblue'>Manfaatkan Outliers Atas "View": Saat terjadi lonjakan tampilan yang signifikan, manfaatkan momen ini untuk meluncurkan kampanye pemasaran tambahan atau promosi produk yang paling banyak dilihat selama periode tersebut. Tingkatkan eksposur produk atau konten yang populer untuk menarik lebih banyak pelanggan.
+
+<font color='lightblue'>Analisis Penyebab Outliers: Selidiki penyebab dari outliers atas dan bawah "View." Apakah ada faktor eksternal, seperti peristiwa khusus atau tren industri, yang memengaruhi perilaku pelanggan? Analisis ini dapat memberikan wawasan tambahan tentang perubahan dalam perilaku pengguna.
+
+<font color='lightblue'>Kontrol Stabilitas Aktivitas "View": Terus memantau aktivitas "View" secara berkala dan pastikan bahwa ada strategi pemasaran yang konsisten untuk menjaga stabilitasnya. Perhatikan perubahan dalam tren dan selalu siap untuk beradaptasi dengan perubahan dalam perilaku pengguna.   
+
+<font color='lightgreen' size='3'>Boxplot untuk event: ADDTOCART
+    
+<font color='lightblue'> <u>Event "Addtocart" dengan Outliers Bawah:</u> Boxplot event "Addtocart" menunjukkan adanya outliers bawah, yang berarti ada beberapa hari dengan jumlah "Addtocart" yang jauh lebih rendah dari biasanya. Hal ini bisa menunjukkan adanya masalah dalam proses penjualan atau pengalaman pelanggan yang mungkin menghambat pelanggan untuk menambahkan produk ke keranjang belanja.    
+
+<font color='lightblue'>Rekomendasi: Telusuri penyebab penurunan tajam dalam "Addtocart" pada hari-hari tersebut. Periksa apakah ada masalah teknis dalam situs web atau aplikasi, atau jika ada perubahan dalam strategi penjualan atau penawaran yang mungkin memengaruhi perilaku pelanggan. Perbaiki masalah tersebut untuk memastikan pengalaman pelanggan yang mulus.
+
+<font color='lightgreen' size='3'>Boxplot untuk event: TRANSACTION
+    
+<font color='lightblue'> <u>Event "Transaction" tanpa Outliers:</u>    
+<font color='lightblue'>Boxplot event "Transaction" tidak menunjukkan adanya outliers, yang berarti jumlah transaksi relatif stabil tanpa lonjakan atau penurunan ekstrem.     
+
+<font color='lightblue'>Rekomendasi: Meskipun tidak ada outliers yang signifikan, tetap penting untuk menjaga stabilitas dalam jumlah transaksi. Terus pertahankan strategi pemasaran yang efektif dan pastikan bahwa proses transaksi berjalan lancar tanpa hambatan yang dapat mengurangi konversi.
+
+
+```python
+
+```
+
+<font color='lightgreen' size='3'>
+    <font color='lightgreen' size='3'>2.c Apakah ada kendala dari proses addtocard hingga customer melakukan transaction? Gunakan funnel analysis untuk mencari tahu.
+
+<font color='lightgreen' size='3'> # Jawaban
+
+
+```python
+import pandas as pd
+import plotly.express as px
+
+# Langkah 1: Hitung Konversi
+# Menghitung jumlah pengguna atau transaksi di setiap langkah funnel
+funnel_data = daily_total[['date_key', 'view', 'addtocart', 'transaction']].copy()
+
+# Langkah 2: Analisis Konversi
+# Menghitung tingkat konversi antara setiap langkah funnel
+funnel_data['view_to_addtocart'] = funnel_data['addtocart'] / funnel_data['view']
+funnel_data['addtocart_to_transaction'] = funnel_data['transaction'] / funnel_data['addtocart']
+
+# Menampilkan data funnel
+funnel_data
+
+
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>event</th>
+      <th>date_key</th>
+      <th>view</th>
+      <th>addtocart</th>
+      <th>transaction</th>
+      <th>view_to_addtocart</th>
+      <th>addtocart_to_transaction</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2015-05-03</td>
+      <td>13304.0</td>
+      <td>296.0</td>
+      <td>83.0</td>
+      <td>0.022249</td>
+      <td>0.280405</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2015-05-04</td>
+      <td>18681.0</td>
+      <td>579.0</td>
+      <td>154.0</td>
+      <td>0.030994</td>
+      <td>0.265976</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2015-05-05</td>
+      <td>22225.0</td>
+      <td>565.0</td>
+      <td>225.0</td>
+      <td>0.025422</td>
+      <td>0.398230</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2015-05-06</td>
+      <td>23015.0</td>
+      <td>647.0</td>
+      <td>258.0</td>
+      <td>0.028112</td>
+      <td>0.398764</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2015-05-07</td>
+      <td>22369.0</td>
+      <td>578.0</td>
+      <td>217.0</td>
+      <td>0.025839</td>
+      <td>0.375433</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>134</th>
+      <td>2015-09-14</td>
+      <td>20284.0</td>
+      <td>475.0</td>
+      <td>154.0</td>
+      <td>0.023417</td>
+      <td>0.324211</td>
+    </tr>
+    <tr>
+      <th>135</th>
+      <td>2015-09-15</td>
+      <td>19674.0</td>
+      <td>595.0</td>
+      <td>158.0</td>
+      <td>0.030243</td>
+      <td>0.265546</td>
+    </tr>
+    <tr>
+      <th>136</th>
+      <td>2015-09-16</td>
+      <td>11022.0</td>
+      <td>336.0</td>
+      <td>137.0</td>
+      <td>0.030484</td>
+      <td>0.407738</td>
+    </tr>
+    <tr>
+      <th>137</th>
+      <td>2015-09-17</td>
+      <td>9830.0</td>
+      <td>253.0</td>
+      <td>45.0</td>
+      <td>0.025738</td>
+      <td>0.177866</td>
+    </tr>
+    <tr>
+      <th>138</th>
+      <td>2015-09-18</td>
+      <td>1479.0</td>
+      <td>34.0</td>
+      <td>15.0</td>
+      <td>0.022989</td>
+      <td>0.441176</td>
+    </tr>
+  </tbody>
+</table>
+<p>139 rows × 6 columns</p>
+</div>
+
+
+
+<font color='lightblue' size='5'> Visual-Grafik Funnel dari total data :
+
+
+```python
+import pandas as pd
+import plotly.express as px
+
+# Menghitung the total sum of 'view,' 'addtocart,' and 'transaction'
+total_sum = daily_total[['view', 'addtocart', 'transaction']].sum()
+
+# membuat DataFrame for the total sum
+total_sum_data = pd.DataFrame({
+    'Stage': ['View', 'Add to Cart', 'Transaction'],
+    'Count': total_sum.values
+})
+
+# membuat funnel chart berdasarkan total sum
+fig = px.funnel(total_sum_data,
+                y='Count',
+                x='Stage',
+                title='Funnel Analysis (Total)',
+                labels={'Count': 'Total Count'},
+                height=400)
+
+# menampilkan funnel chart
+fig.show()
+
+```
+
+
+<div>                            <div id="bf82c46e-633d-4600-abe3-cdc7cb9b767b" class="plotly-graph-div" style="height:400px; width:100%;"></div>            <script type="text/javascript">                require(["plotly"], function(Plotly) {                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("bf82c46e-633d-4600-abe3-cdc7cb9b767b")) {                    Plotly.newPlot(                        "bf82c46e-633d-4600-abe3-cdc7cb9b767b",                        [{"hovertemplate":"Stage=%{x}<br>Total Count=%{y}<extra></extra>","legendgroup":"","marker":{"color":"#636efa"},"name":"","orientation":"v","showlegend":false,"x":["View","Add to Cart","Transaction"],"xaxis":"x","y":[2664312.0,69332.0,22457.0],"yaxis":"y","type":"funnel"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmapgl":[{"type":"heatmapgl","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,1.0],"title":{"text":"Stage"}},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"Total Count"}},"legend":{"tracegroupgap":0},"title":{"text":"Funnel Analysis (Total)"},"height":400},                        {"responsive": true}                    ).then(function(){
+
+var gd = document.getElementById('bf82c46e-633d-4600-abe3-cdc7cb9b767b');
+var x = new MutationObserver(function (mutations, observer) {{
+        var display = window.getComputedStyle(gd).display;
+        if (!display || display === 'none') {{
+            console.log([gd, 'removed!']);
+            Plotly.purge(gd);
+            observer.disconnect();
+        }}
+}});
+
+// Listen for the removal of the full notebook cells
+var notebookContainer = gd.closest('#notebook-container');
+if (notebookContainer) {{
+    x.observe(notebookContainer, {childList: true});
+}}
+
+// Listen for the clearing of the current output cell
+var outputEl = gd.closest('.output');
+if (outputEl) {{
+    x.observe(outputEl, {childList: true});
+}}
+
+                        })                };                });            </script>        </div>
+
+
+
+```python
+
+```
+
+<font color='lightgreen' size='3'>Insight dan rekomendasi:
+
+<font color='lightblue'><u>Penurunan Signifikan dari View ke Add to Cart:</u>    
+Terdapat penurunan yang sangat signifikan dalam jumlah penggunaan dari tahap "View" ke tahap "Add to Cart." Ini menunjukkan bahwa meskipun banyak orang melihat produk atau konten, hanya sebagian kecil dari mereka yang benar-benar memutuskan untuk menambahkan produk ke keranjang belanja.    
+<font color='lightblue'>Rekomendasi: Fokus pada peningkatan konversi dari tahap "View" ke "Add to Cart." Ini bisa melibatkan strategi seperti menampilkan produk terkait atau memberikan insentif untuk menambahkan produk ke keranjang.    
+
+<font color='lightblue'><u>Dropout yang Signifikan dari Add to Cart ke Transaction:</u>    
+Terdapat penurunan yang signifikan lagi dalam jumlah dari tahap "Add to Cart" ke tahap "Transaction." Ini menunjukkan bahwa sejumlah besar pengguna mungkin menambahkan produk ke keranjang belanja, tetapi tidak menyelesaikan transaksi.    
+<font color='lightblue'>Rekomendasi: Telusuri penyebab tingginya tingkat dropout dari tahap "Add to Cart" ke "Transaction." Periksa apakah ada masalah dengan proses pembayaran atau apakah diperlukan insentif tambahan untuk mendorong pelanggan untuk menyelesaikan pembelian.    
+
+<font color='lightblue'><u>Kesenjangan yang Besar Antara View dan Transaction:</u>    
+Terdapat kesenjangan yang signifikan antara jumlah penggunaan di tahap "View" dan jumlah transaksi yang sebenarnya terjadi. Hal ini menunjukkan bahwa banyak pengguna hanya melihat produk tanpa akhirnya melakukan pembelian.    
+<font color='lightblue'>Rekomendasi: Tingkatkan upaya untuk mengonversi pengguna yang hanya melihat produk menjadi pelanggan yang sebenarnya. Ini dapat melibatkan strategi retargeting iklan atau kampanye email untuk mengingatkan mereka tentang produk yang mereka lihat sebelumnya.
+
+<font color='lightblue'><u>Pemahaman Tahap-tahap:</u>     
+Meskipun ada penurunan signifikan di setiap tahap, penting untuk memahami bahwa tidak semua pengguna yang melihat produk akan mengakhiri dengan transaksi. Sebagian besar akan terjebak di tahap-tahap sebelumnya. Ini adalah karakteristik umum dari konversi konsumen online.       
+<font color='lightblue'>Rekomendasi: Fokus pada meningkatkan laju konversi di setiap tahap, tetapi juga realistis tentang kenyataan bahwa tidak semua pengguna akan melanjutkan ke tahap berikutnya. Penting untuk memahami funnel konversi Anda secara keseluruhan dan berusaha memaksimalkan konversi di setiap tahap.
+
+
+```python
+
+```
+
+<font color='lightblue' size='5'> Visual-Grafik Funnel dari tiap bulannya :
+
+
+```python
+import pandas as pd
+
+# membuat DataFrame bulanan
+may_data = daily_total[daily_total['date_key'].between('2015-05-01', '2015-05-31')]
+june_data = daily_total[daily_total['date_key'].between('2015-06-01', '2015-06-30')]
+july_data = daily_total[daily_total['date_key'].between('2015-07-01', '2015-07-31')]
+august_data = daily_total[daily_total['date_key'].between('2015-08-01', '2015-08-31')]
+september_data = daily_total[daily_total['date_key'].between('2015-09-01', '2015-09-30')]
+
+# Menghitung total sum data untuk setiap bulan
+may_total_sum_data = may_data[['view', 'addtocart', 'transaction']].sum()
+june_total_sum_data = june_data[['view', 'addtocart', 'transaction']].sum()
+july_total_sum_data = july_data[['view', 'addtocart', 'transaction']].sum()
+august_total_sum_data = august_data[['view', 'addtocart', 'transaction']].sum()
+september_total_sum_data = september_data[['view', 'addtocart', 'transaction']].sum()
+
+# Membuat DataFrame untuk total sum data
+total_sum_table = pd.DataFrame({
+    'Bulan': ['Mei', 'Juni', 'Juli', 'Agustus', 'September'],
+    'View': [may_total_sum_data['view'], june_total_sum_data['view'], july_total_sum_data['view'],
+             august_total_sum_data['view'], september_total_sum_data['view']],
+    'Addtocart': [may_total_sum_data['addtocart'], june_total_sum_data['addtocart'], july_total_sum_data['addtocart'],
+                  august_total_sum_data['addtocart'], september_total_sum_data['addtocart']],
+    'Transaction': [may_total_sum_data['transaction'], june_total_sum_data['transaction'], july_total_sum_data['transaction'],
+                    august_total_sum_data['transaction'], september_total_sum_data['transaction']]
+})
+
+# Menampilkan tabel total sum data
+print(total_sum_table)
+
+
+```
+
+           Bulan      View  Addtocart  Transaction
+    0        Mei  571672.0    14369.0       4611.0
+    1       Juni  590255.0    15095.0       5043.0
+    2       Juli  674820.0    17362.0       5802.0
+    3    Agustus  533905.0    14825.0       4632.0
+    4  September  293660.0     7681.0       2369.0
+    
+
+
+```python
+import pandas as pd
+import plotly.graph_objects as go
+
+# Mengelompokkan data berdasarkan bulan (Mei hingga September)
+monthly_data = daily_total[daily_total['date_key'].dt.month.between(5, 9)]
+
+# Filter data hanya untuk bulan Mei
+may_data = monthly_data[monthly_data['date_key'].dt.month == 5]
+
+# Filter data hanya untuk bulan Juni
+june_data = monthly_data[monthly_data['date_key'].dt.month == 6]
+
+# Filter data hanya untuk bulan Juli
+july_data = monthly_data[monthly_data['date_key'].dt.month == 7]
+
+# Filter data hanya untuk bulan Agustus
+august_data = monthly_data[monthly_data['date_key'].dt.month == 8]
+
+# Filter data hanya untuk bulan September
+september_data = monthly_data[monthly_data['date_key'].dt.month == 9]
+
+# Menghitung total jumlah 'view', 'addtocart', dan 'transaction' untuk masing-masing bulan
+may_total_sum_data = may_data[['view', 'addtocart', 'transaction']].sum()
+june_total_sum_data = june_data[['view', 'addtocart', 'transaction']].sum()
+july_total_sum_data = july_data[['view', 'addtocart', 'transaction']].sum()
+august_total_sum_data = august_data[['view', 'addtocart', 'transaction']].sum()
+september_total_sum_data = september_data[['view', 'addtocart', 'transaction']].sum()
+
+# Membuat DataFrame untuk total jumlah di masing-masing bulan
+may_total_sum_data = pd.DataFrame({
+    'Tahap': ['View', 'Add to Cart', 'Transaction'],
+    'Jumlah Mei': may_total_sum_data.values
+})
+
+june_total_sum_data = pd.DataFrame({
+    'Tahap': ['View', 'Add to Cart', 'Transaction'],
+    'Jumlah Juni': june_total_sum_data.values
+})
+
+july_total_sum_data = pd.DataFrame({
+    'Tahap': ['View', 'Add to Cart', 'Transaction'],
+    'Jumlah Juli': july_total_sum_data.values
+})
+
+august_total_sum_data = pd.DataFrame({
+    'Tahap': ['View', 'Add to Cart', 'Transaction'],
+    'Jumlah Agustus': august_total_sum_data.values
+})
+
+september_total_sum_data = pd.DataFrame({
+    'Tahap': ['View', 'Add to Cart', 'Transaction'],
+    'Jumlah September': september_total_sum_data.values
+})
+
+# Membuat objek figure untuk grafik funnel masing-masing bulan dan total
+fig_may = go.Figure(go.Funnel(
+    x=may_total_sum_data['Jumlah Mei'],
+    y=may_total_sum_data['Tahap'],
+    textinfo="value+percent initial+percent previous",
+    name="Mei"  # Nama untuk grafik Mei
+))
+
+fig_june = go.Figure(go.Funnel(
+    x=june_total_sum_data['Jumlah Juni'],
+    y=june_total_sum_data['Tahap'],
+    textinfo="value+percent initial+percent previous",
+    name="Juni"  # Nama untuk grafik Juni
+))
+
+fig_july = go.Figure(go.Funnel(
+    x=july_total_sum_data['Jumlah Juli'],
+    y=july_total_sum_data['Tahap'],
+    textinfo="value+percent initial+percent previous",
+    name="Juli"  # Nama untuk grafik Juli
+))
+
+fig_august = go.Figure(go.Funnel(
+    x=august_total_sum_data['Jumlah Agustus'],
+    y=august_total_sum_data['Tahap'],
+    textinfo="value+percent initial+percent previous",
+    name="Agustus"  # Nama untuk grafik Agustus
+))
+
+fig_september = go.Figure(go.Funnel(
+    x=september_total_sum_data['Jumlah September'],
+    y=september_total_sum_data['Tahap'],
+    textinfo="value+percent initial+percent previous",
+    name="September"  # Nama untuk grafik September
+))
+
+# Menampilkan semua grafik dalam satu tampilan
+from plotly.subplots import make_subplots
+
+fig = make_subplots(rows=2, cols=3, subplot_titles=("Mei", "Juni", "Juli", "Agustus", "September", "Total"))
+
+fig.add_trace(fig_may.data[0], row=1, col=1)
+fig.add_trace(fig_june.data[0], row=1, col=2)
+fig.add_trace(fig_july.data[0], row=1, col=3)
+fig.add_trace(fig_august.data[0], row=2, col=1)
+fig.add_trace(fig_september.data[0], row=2, col=2)
+
+# Menghitung total jumlah 'view', 'addtocart', dan 'transaction' untuk total
+total_sum = daily_total[['view', 'addtocart', 'transaction']].sum()
+
+# Membuat DataFrame untuk total jumlah
+total_sum_data = pd.DataFrame({
+    'Tahap': ['View', 'Add to Cart', 'Transaction'],
+    'Jumlah': total_sum.values
+})
+
+# Membuat grafik funnel untuk total jumlah
+fig_total = go.Figure(go.Funnel(
+    x=total_sum_data['Jumlah'],
+    y=total_sum_data['Tahap'],
+    textinfo="value+percent initial+percent previous",
+    name="Total"  # Nama untuk grafik Total
+))
+
+fig.add_trace(fig_total.data[0], row=2, col=3)
+
+# Menampilkan grafik
+fig.update_layout(title_text="Analisis Funnel (Mei - September)")
+fig.show()
+
+```
+
+
+<div>                            <div id="8b18a26b-8dae-4c92-888e-a28d18f99b32" class="plotly-graph-div" style="height:525px; width:100%;"></div>            <script type="text/javascript">                require(["plotly"], function(Plotly) {                    window.PLOTLYENV=window.PLOTLYENV || {};                                    if (document.getElementById("8b18a26b-8dae-4c92-888e-a28d18f99b32")) {                    Plotly.newPlot(                        "8b18a26b-8dae-4c92-888e-a28d18f99b32",                        [{"name":"Mei","textinfo":"value+percent initial+percent previous","x":[571672.0,14369.0,4611.0],"y":["View","Add to Cart","Transaction"],"type":"funnel","xaxis":"x","yaxis":"y"},{"name":"Juni","textinfo":"value+percent initial+percent previous","x":[590255.0,15095.0,5043.0],"y":["View","Add to Cart","Transaction"],"type":"funnel","xaxis":"x2","yaxis":"y2"},{"name":"Juli","textinfo":"value+percent initial+percent previous","x":[674820.0,17362.0,5802.0],"y":["View","Add to Cart","Transaction"],"type":"funnel","xaxis":"x3","yaxis":"y3"},{"name":"Agustus","textinfo":"value+percent initial+percent previous","x":[533905.0,14825.0,4632.0],"y":["View","Add to Cart","Transaction"],"type":"funnel","xaxis":"x4","yaxis":"y4"},{"name":"September","textinfo":"value+percent initial+percent previous","x":[293660.0,7681.0,2369.0],"y":["View","Add to Cart","Transaction"],"type":"funnel","xaxis":"x5","yaxis":"y5"},{"name":"Total","textinfo":"value+percent initial+percent previous","x":[2664312.0,69332.0,22457.0],"y":["View","Add to Cart","Transaction"],"type":"funnel","xaxis":"x6","yaxis":"y6"}],                        {"template":{"data":{"histogram2dcontour":[{"type":"histogram2dcontour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"choropleth":[{"type":"choropleth","colorbar":{"outlinewidth":0,"ticks":""}}],"histogram2d":[{"type":"histogram2d","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmap":[{"type":"heatmap","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"heatmapgl":[{"type":"heatmapgl","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"contourcarpet":[{"type":"contourcarpet","colorbar":{"outlinewidth":0,"ticks":""}}],"contour":[{"type":"contour","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"surface":[{"type":"surface","colorbar":{"outlinewidth":0,"ticks":""},"colorscale":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]]}],"mesh3d":[{"type":"mesh3d","colorbar":{"outlinewidth":0,"ticks":""}}],"scatter":[{"fillpattern":{"fillmode":"overlay","size":10,"solidity":0.2},"type":"scatter"}],"parcoords":[{"type":"parcoords","line":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolargl":[{"type":"scatterpolargl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"bar":[{"error_x":{"color":"#2a3f5f"},"error_y":{"color":"#2a3f5f"},"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"bar"}],"scattergeo":[{"type":"scattergeo","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterpolar":[{"type":"scatterpolar","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"histogram":[{"marker":{"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"histogram"}],"scattergl":[{"type":"scattergl","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatter3d":[{"type":"scatter3d","line":{"colorbar":{"outlinewidth":0,"ticks":""}},"marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattermapbox":[{"type":"scattermapbox","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scatterternary":[{"type":"scatterternary","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"scattercarpet":[{"type":"scattercarpet","marker":{"colorbar":{"outlinewidth":0,"ticks":""}}}],"carpet":[{"aaxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"baxis":{"endlinecolor":"#2a3f5f","gridcolor":"white","linecolor":"white","minorgridcolor":"white","startlinecolor":"#2a3f5f"},"type":"carpet"}],"table":[{"cells":{"fill":{"color":"#EBF0F8"},"line":{"color":"white"}},"header":{"fill":{"color":"#C8D4E3"},"line":{"color":"white"}},"type":"table"}],"barpolar":[{"marker":{"line":{"color":"#E5ECF6","width":0.5},"pattern":{"fillmode":"overlay","size":10,"solidity":0.2}},"type":"barpolar"}],"pie":[{"automargin":true,"type":"pie"}]},"layout":{"autotypenumbers":"strict","colorway":["#636efa","#EF553B","#00cc96","#ab63fa","#FFA15A","#19d3f3","#FF6692","#B6E880","#FF97FF","#FECB52"],"font":{"color":"#2a3f5f"},"hovermode":"closest","hoverlabel":{"align":"left"},"paper_bgcolor":"white","plot_bgcolor":"#E5ECF6","polar":{"bgcolor":"#E5ECF6","angularaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"radialaxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"ternary":{"bgcolor":"#E5ECF6","aaxis":{"gridcolor":"white","linecolor":"white","ticks":""},"baxis":{"gridcolor":"white","linecolor":"white","ticks":""},"caxis":{"gridcolor":"white","linecolor":"white","ticks":""}},"coloraxis":{"colorbar":{"outlinewidth":0,"ticks":""}},"colorscale":{"sequential":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"sequentialminus":[[0.0,"#0d0887"],[0.1111111111111111,"#46039f"],[0.2222222222222222,"#7201a8"],[0.3333333333333333,"#9c179e"],[0.4444444444444444,"#bd3786"],[0.5555555555555556,"#d8576b"],[0.6666666666666666,"#ed7953"],[0.7777777777777778,"#fb9f3a"],[0.8888888888888888,"#fdca26"],[1.0,"#f0f921"]],"diverging":[[0,"#8e0152"],[0.1,"#c51b7d"],[0.2,"#de77ae"],[0.3,"#f1b6da"],[0.4,"#fde0ef"],[0.5,"#f7f7f7"],[0.6,"#e6f5d0"],[0.7,"#b8e186"],[0.8,"#7fbc41"],[0.9,"#4d9221"],[1,"#276419"]]},"xaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"yaxis":{"gridcolor":"white","linecolor":"white","ticks":"","title":{"standoff":15},"zerolinecolor":"white","automargin":true,"zerolinewidth":2},"scene":{"xaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"yaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2},"zaxis":{"backgroundcolor":"#E5ECF6","gridcolor":"white","linecolor":"white","showbackground":true,"ticks":"","zerolinecolor":"white","gridwidth":2}},"shapedefaults":{"line":{"color":"#2a3f5f"}},"annotationdefaults":{"arrowcolor":"#2a3f5f","arrowhead":0,"arrowwidth":1},"geo":{"bgcolor":"white","landcolor":"#E5ECF6","subunitcolor":"white","showland":true,"showlakes":true,"lakecolor":"white"},"title":{"x":0.05},"mapbox":{"style":"light"}}},"xaxis":{"anchor":"y","domain":[0.0,0.2888888888888889]},"yaxis":{"anchor":"x","domain":[0.625,1.0]},"xaxis2":{"anchor":"y2","domain":[0.35555555555555557,0.6444444444444445]},"yaxis2":{"anchor":"x2","domain":[0.625,1.0]},"xaxis3":{"anchor":"y3","domain":[0.7111111111111111,1.0]},"yaxis3":{"anchor":"x3","domain":[0.625,1.0]},"xaxis4":{"anchor":"y4","domain":[0.0,0.2888888888888889]},"yaxis4":{"anchor":"x4","domain":[0.0,0.375]},"xaxis5":{"anchor":"y5","domain":[0.35555555555555557,0.6444444444444445]},"yaxis5":{"anchor":"x5","domain":[0.0,0.375]},"xaxis6":{"anchor":"y6","domain":[0.7111111111111111,1.0]},"yaxis6":{"anchor":"x6","domain":[0.0,0.375]},"annotations":[{"font":{"size":16},"showarrow":false,"text":"Mei","x":0.14444444444444446,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Juni","x":0.5,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Juli","x":0.8555555555555556,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Agustus","x":0.14444444444444446,"xanchor":"center","xref":"paper","y":0.375,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"September","x":0.5,"xanchor":"center","xref":"paper","y":0.375,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Total","x":0.8555555555555556,"xanchor":"center","xref":"paper","y":0.375,"yanchor":"bottom","yref":"paper"}],"title":{"text":"Analisis Funnel (Mei - September)"}},                        {"responsive": true}                    ).then(function(){
+
+var gd = document.getElementById('8b18a26b-8dae-4c92-888e-a28d18f99b32');
+var x = new MutationObserver(function (mutations, observer) {{
+        var display = window.getComputedStyle(gd).display;
+        if (!display || display === 'none') {{
+            console.log([gd, 'removed!']);
+            Plotly.purge(gd);
+            observer.disconnect();
+        }}
+}});
+
+// Listen for the removal of the full notebook cells
+var notebookContainer = gd.closest('#notebook-container');
+if (notebookContainer) {{
+    x.observe(notebookContainer, {childList: true});
+}}
+
+// Listen for the clearing of the current output cell
+var outputEl = gd.closest('.output');
+if (outputEl) {{
+    x.observe(outputEl, {childList: true});
+}}
+
+                        })                };                });            </script>        </div>
+
+
+<font color='lightgreen' size='3'>Insight dan rekomendasi:
+
+<font color='lightblue'><u>Peningkatan Jumlah View Setiap Bulan:</u>    
+Terdapat peningkatan jumlah "View" setiap bulan dari Mei hingga September. Ini menunjukkan bahwa konten atau produk Anda semakin banyak dilihat oleh pengguna.   
+Rekomendasi: Pertahankan strategi yang meningkatkan jumlah "View" dan perhatikan apa yang telah berhasil selama periode tersebut. Lanjutkan mempromosikan konten atau produk yang menarik perhatian pengguna.   
+    
+<font color='lightblue'><u>Penurunan Jumlah Add to Cart pada Agustus:</u>   
+Ada penurunan yang signifikan dalam jumlah "Add to Cart" pada bulan Agustus. Hal ini bisa mengindikasikan masalah dengan produk atau antarmuka yang menghalangi pengguna menambahkan produk ke keranjang.   
+Rekomendasi: Telusuri penyebab penurunan ini. Periksa apakah ada masalah dengan tampilan produk atau proses penambahan ke keranjang. Mungkin diperlukan perbaikan pada situs web atau aplikasi.
+
+<font color='lightblue'><u>Peningkatan Konversi dari Add to Cart ke Transaction pada Juli:</u>   
+Pada bulan Juli, terlihat peningkatan yang signifikan dalam jumlah "Transaction" dibandingkan dengan "Add to Cart." Ini menunjukkan bahwa pengguna yang menambahkan produk ke keranjang lebih mungkin untuk menyelesaikan transaksi.   
+Rekomendasi: Selidiki apa yang telah berhasil selama bulan Juli yang meningkatkan konversi ini. Teruskan dengan strategi yang mendorong pengguna yang menambahkan produk ke keranjang untuk menyelesaikan transaksi.   
+    
+<font color='lightblue'><u>Total Jumlah Event:</u>    
+Meskipun ada fluktuasi dalam jumlah setiap event (View, Add to Cart, Transaction) setiap bulan, grafik total menunjukkan bahwa jumlah keseluruhan event cenderung stabil.   
+Rekomendasi: Pertahankan strategi yang mempertahankan jumlah keseluruhan event. Fokus pada peningkatan konversi di setiap tahap funnel untuk mengoptimalkan jumlah transaksi.   
+
+
+
+```python
+
+```
+
+<font color='lightgreen' size='8'> 3. RF Analysis
+    
+<font color='yellow' size='3'> Karena pada data ini tidak ada informasi mengenai nilai dari item yang dibeli, maka analisis akan mengabaikan komponen M.
+
+<font color='lightgreen' size='3'> 3.a Hitunglah sudah berapa hari sejak customer terakhir kali melakukan transaksi. 
+Output data yang diharapkan adalah dataframe dengan 2 kolom, yakni visitorid dan juga sudah berapa hari sejak transaksi berlalu
+
+<font color='lightgreen' size='3'> # Jawaban
+
+
+```python
+df
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>timestamp</th>
+      <th>visitorid</th>
+      <th>event</th>
+      <th>itemid</th>
+      <th>transactionid</th>
+      <th>date_key</th>
+    </tr>
+    <tr>
+      <th>datetime</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2015-06-02 05:02:12.117</th>
+      <td>1433221332117</td>
+      <td>257597</td>
+      <td>view</td>
+      <td>355908</td>
+      <td>NaN</td>
+      <td>2015-06-02</td>
+    </tr>
+    <tr>
+      <th>2015-06-02 05:50:14.164</th>
+      <td>1433224214164</td>
+      <td>992329</td>
+      <td>view</td>
+      <td>248676</td>
+      <td>NaN</td>
+      <td>2015-06-02</td>
+    </tr>
+    <tr>
+      <th>2015-06-02 05:13:19.827</th>
+      <td>1433221999827</td>
+      <td>111016</td>
+      <td>view</td>
+      <td>318965</td>
+      <td>NaN</td>
+      <td>2015-06-02</td>
+    </tr>
+    <tr>
+      <th>2015-06-02 05:12:35.914</th>
+      <td>1433221955914</td>
+      <td>483717</td>
+      <td>view</td>
+      <td>253185</td>
+      <td>NaN</td>
+      <td>2015-06-02</td>
+    </tr>
+    <tr>
+      <th>2015-06-02 05:02:17.106</th>
+      <td>1433221337106</td>
+      <td>951259</td>
+      <td>view</td>
+      <td>367447</td>
+      <td>NaN</td>
+      <td>2015-06-02</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>2015-08-01 03:13:05.939</th>
+      <td>1438398785939</td>
+      <td>591435</td>
+      <td>view</td>
+      <td>261427</td>
+      <td>NaN</td>
+      <td>2015-08-01</td>
+    </tr>
+    <tr>
+      <th>2015-08-01 03:30:13.142</th>
+      <td>1438399813142</td>
+      <td>762376</td>
+      <td>view</td>
+      <td>115946</td>
+      <td>NaN</td>
+      <td>2015-08-01</td>
+    </tr>
+    <tr>
+      <th>2015-08-01 02:57:00.527</th>
+      <td>1438397820527</td>
+      <td>1251746</td>
+      <td>view</td>
+      <td>78144</td>
+      <td>NaN</td>
+      <td>2015-08-01</td>
+    </tr>
+    <tr>
+      <th>2015-08-01 03:08:50.703</th>
+      <td>1438398530703</td>
+      <td>1184451</td>
+      <td>view</td>
+      <td>283392</td>
+      <td>NaN</td>
+      <td>2015-08-01</td>
+    </tr>
+    <tr>
+      <th>2015-08-01 03:36:03.914</th>
+      <td>1438400163914</td>
+      <td>199536</td>
+      <td>view</td>
+      <td>152913</td>
+      <td>NaN</td>
+      <td>2015-08-01</td>
+    </tr>
+  </tbody>
+</table>
+<p>2756101 rows × 6 columns</p>
+</div>
+
+
+
+
+```python
+import pandas as pd
+from datetime import datetime
+
+# Membaca data dari file CSV
+df = pd.read_csv('events.csv')
+
+# Mengonversi kolom 'timestamp' menjadi datetime
+df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+
+# Menentukan tanggal terbaru dalam dataset
+latest_date = df['timestamp'].max()
+
+# Membuat DataFrame yang berisi data terbaru per pelanggan
+latest_trx_per_customer = df[df['event'] == 'transaction'].groupby('visitorid')['timestamp'].max().reset_index()
+
+# Menghitung 'days_to_today' untuk setiap pelanggan
+latest_trx_per_customer['days_to_today'] = latest_date - latest_trx_per_customer['timestamp']
+
+# Mengonversi timedelta menjadi bilangan bulat (integer)
+latest_trx_per_customer['days_to_today'] = latest_trx_per_customer['days_to_today'].dt.days
+
+# Mengurutkan DataFrame berdasarkan 'days_to_today'
+latest_trx_per_customer = latest_trx_per_customer.sort_values('days_to_today')
+
+# Menampilkan hasil
+print(latest_trx_per_customer[['visitorid', 'days_to_today']])
+
+
+
+```
+
+           visitorid  days_to_today
+    68          7633              0
+    7377      895999              0
+    8663     1045937              0
+    9978     1199182              0
+    247        31936              0
+    ...          ...            ...
+    7432      902220            137
+    5201      636520            137
+    5520      673776            137
+    10034    1206788            137
+    3786      461703            137
+    
+    [11719 rows x 2 columns]
+    
+
+
+```python
+
+```
+
+<font color='lightgreen' size='3'> 3.b berdasarkan hasil sebelumnya, bagi customer menjadi 4 kelompok berdasarkan aspek waktu transaksi terakhir.
+
+<font color='lightgreen' size='3'> # Jawaban
+
+
+```python
+import pandas as pd
+from datetime import datetime
+
+# Membaca data dari file CSV
+df = pd.read_csv('events.csv')
+
+# Mengonversi kolom 'timestamp' menjadi datetime
+df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+
+# Menentukan tanggal terbaru dalam dataset
+latest_date = df['timestamp'].max()
+
+# Membuat DataFrame yang berisi data terbaru per pelanggan
+df_recency = df[df['event'] == 'transaction'].groupby('visitorid')['timestamp'].max().reset_index()
+
+# Menghitung 'days_to_today' untuk setiap pelanggan
+df_recency['days_to_today'] = latest_date - df_recency['timestamp']
+
+# Mengonversi timedelta menjadi bilangan bulat (integer)
+df_recency['days_to_today'] = df_recency['days_to_today'].dt.days
+
+# Membagi 'days_to_today' menjadi 4 kelompok dengan qcut
+df_recency['recency_group'] = pd.qcut(df_recency['days_to_today'], q=4, labels=False)
+
+# Menambahkan 1 ke setiap nilai dalam kolom 'recency_group'
+df_recency['recency_group'] = df_recency['recency_group'] + 1
+
+# Menambahkan kolom 'R_score' berdasarkan kelompok recency
+df_recency['R_score'] = df_recency['recency_group'].map({
+    1: 'recent',
+    2: 'normal',
+    3: 'long',
+    4: 'verylong'
+})
+
+# Mengurutkan DataFrame berdasarkan 'recency_group'
+df_recency = df_recency.sort_values('recency_group')
+
+# Menampilkan hasil
+print(df_recency[['visitorid', 'days_to_today', 'recency_group', 'R_score']])
+
+```
+
+          visitorid  days_to_today  recency_group   R_score
+    0           172             34              1    recent
+    9182    1109812             34              1    recent
+    3797     463466             11              1    recent
+    3798     463688              8              1    recent
+    3799     463740             25              1    recent
+    ...         ...            ...            ...       ...
+    8977    1085571            136              4  verylong
+    8978    1085620            128              4  verylong
+    4116     503857            105              4  verylong
+    4134     505988            136              4  verylong
+    5859     718314            108              4  verylong
+    
+    [11719 rows x 4 columns]
+    
+
+
+```python
+
+```
+
+<font color='lightgreen' size='3'>3.c Hitunglah banyaknya transaksi yang dilakukan oleh setiap uservisitor 
+    
+<font color='lightgreen' size='3'><font color='lightgreen' size='3'> Output data yang diharapkan adalah dataframe dengan 2 kolom, yakni visitorid dan juga sudah berapa banyak transaksi yang telah dilakukan
+
+<font color='lightgreen' size='3'> # Jawaban
+
+
+```python
+import pandas as pd
+
+# Membaca data dari file CSV
+df = pd.read_csv('events.csv')
+
+# Menghitung jumlah transaksi per visitorid
+transaction_count = df[df['event'] == 'transaction'].groupby('visitorid').size().reset_index(name='jumlah_transaksi')
+
+# Mengurutkan DataFrame berdasarkan jumlah_transaksi secara ascending
+transaction_count = transaction_count.sort_values('jumlah_transaksi')
+
+# Menampilkan hasil
+print(transaction_count[['visitorid', 'jumlah_transaksi']])
+
+```
+
+          visitorid  jumlah_transaksi
+    5859     718314                 1
+    7308     888465                 1
+    7311     888593                 1
+    7312     888717                 1
+    7313     888739                 1
+    ...         ...               ...
+    7076     861299               188
+    5618     684514               189
+    4323     530559               286
+    1250     152963               349
+    9541    1150086               559
+    
+    [11719 rows x 2 columns]
+    
+
+
+```python
+
+```
+
+<font color='lightgreen' size='3'> 3.d berdasarkan hasil sebelumnya, bagi customer menjadi 4 kelompok berdasarkan banyaknya transaksi yang dilakukan
+
+<font color='lightgreen' size='3'> # Jawaban
+
+
+```python
+import pandas as pd
+
+# Membaca data dari file CSV
+df = pd.read_csv('events.csv')
+
+# Menghitung jumlah transaksi per visitorid
+df_frequency = df[df['event'] == 'transaction'].groupby('visitorid').size().reset_index(name='jumlah_transaksi')
+
+# Mengurutkan DataFrame berdasarkan jumlah_transaksi secara ascending
+df_frequency = df_frequency.sort_values('jumlah_transaksi')
+
+# Menggantikan nilai 0 dengan nilai yang sangat kecil (misalnya, 1e-6)
+df_frequency['jumlah_transaksi'] = df_frequency['jumlah_transaksi'].replace(0, 1e-6)
+
+# Membagi 'jumlah_transaksi' menjadi 4 kelompok berdasarkan kuartil dengan pd.cut
+df_frequency['frequency_group'] = pd.cut(df_frequency['jumlah_transaksi'], bins=4, labels=False) + 1
+
+# Menambahkan kolom 'F_score' berdasarkan kelompok frekuensi
+df_frequency['F_score'] = df_frequency['frequency_group'].map({
+    1: 'low',
+    2: 'medium',
+    3: 'high',  
+    4: 'veryhigh'  
+})
+
+# Menampilkan hasil
+print(df_frequency[['visitorid', 'jumlah_transaksi', 'frequency_group', 'F_score']])
+
+```
+
+          visitorid  jumlah_transaksi  frequency_group   F_score
+    5859     718314                 1                1       low
+    7308     888465                 1                1       low
+    7311     888593                 1                1       low
+    7312     888717                 1                1       low
+    7313     888739                 1                1       low
+    ...         ...               ...              ...       ...
+    7076     861299               188                2    medium
+    5618     684514               189                2    medium
+    4323     530559               286                3      high
+    1250     152963               349                3      high
+    9541    1150086               559                4  veryhigh
+    
+    [11719 rows x 4 columns]
+    
+
+
+```python
+
+```
+
+<font color='lightgreen' size='3'> 3.e gabungkan hasil 3.b dan 3.d kedalam suatu dataframe dan lakukan analisis mengenai karakteristik customers dari aspek RF. Apa yang bisa disimpulkan ?
+
+<font color='lightgreen' size='3'> # Jawaban
+
+<font color='lightblue' size='3'> cara 1. menggunakan pd.concat (hasilnya ada 2 kolom visitorid)
+
+
+```python
+import pandas as pd
+
+# Menggabungkan df_recency dan df_frequency
+df_rf = pd.concat([df_recency, df_frequency], axis=1)
+
+# Menambahkan kolom 'karakter_visitor' berdasarkan kombinasi R_score dan F_score
+df_rf['karakter_visitor'] = df_rf.apply(lambda row: 
+    'verygood' if (row['R_score'] == 'recent' and (row['F_score'] == 'high' or row['F_score'] == 'veryhigh'))
+    else 'normal' if ((row['R_score'] == 'normal' and (row['F_score'] == 'medium' or row['F_score'] == 'high')) or 
+                     (row['R_score'] == 'recent' and row['F_score'] == 'medium'))
+    else 'notgood' if (((row['R_score'] == 'long' or row['R_score'] == 'verylong' or row['R_score'] == 'normal') and 
+                       row['F_score'] == 'low'))
+    else 'potential', axis=1)
+
+# Mengurutkan DataFrame berdasarkan 'karakter_visitor' secara ascending
+df_rf = df_rf.sort_values('karakter_visitor', ascending=True)
+
+# Menampilkan hasil
+print(df_rf[['visitorid', 'R_score', 'F_score', 'karakter_visitor']])
+
+
+```
+
+          visitorid  visitorid R_score   F_score karakter_visitor
+    7076     861299     861299  recent    medium           normal
+    7333     890980     890980  normal    medium           normal
+    3718     453995     453995  normal       low          notgood
+    1599     197591     197591    long       low          notgood
+    2156     261883     261883    long       low          notgood
+    ...         ...        ...     ...       ...              ...
+    8208     995103     995103  recent       low        potential
+    5293     646494     646494  recent       low        potential
+    9541    1150086    1150086  recent  veryhigh         verygood
+    4323     530559     530559  recent      high         verygood
+    1250     152963     152963  recent      high         verygood
+    
+    [11719 rows x 5 columns]
+    
+
+<font color='lightblue' size='3'> cara 2. menggunakan .merge (HASILNYA LEBIH BAIK)
+
+
+```python
+import pandas as pd
+
+# Menggabungkan df_recency dan df_frequency berdasarkan kolom 'visitorid'
+df_rf = df_recency.merge(df_frequency, on='visitorid')
+
+# Menambahkan kolom 'karakter_visitor' berdasarkan kombinasi R_score dan F_score
+def determine_character(row):
+    if (row['R_score'] == 'recent' and (row['F_score'] == 'high' or row['F_score'] == 'veryhigh')):
+        return 'verygood'
+    elif ((row['R_score'] == 'normal' and (row['F_score'] == 'medium' or row['F_score'] == 'high')) or 
+          (row['R_score'] == 'recent' and row['F_score'] == 'medium')):
+        return 'normal'
+    elif ((row['R_score'] in ['long', 'verylong', 'normal']) and row['F_score'] == 'low'):
+        return 'notgood'
+    else:
+        return 'potential'
+
+df_rf['karakter_visitor'] = df_rf.apply(determine_character, axis=1)
+
+# Mengurutkan DataFrame berdasarkan 'karakter_visitor' secara ascending
+df_rf = df_rf.sort_values('karakter_visitor', ascending=True)
+
+# Menampilkan hasil
+print(df_rf[['visitorid', 'R_score', 'F_score', 'karakter_visitor']])
+
+
+```
+
+          visitorid R_score   F_score karakter_visitor
+    1400     861299  recent    medium           normal
+    3623     890980  normal    medium           normal
+    5859     453995  normal       low          notgood
+    7808     197591    long       low          notgood
+    7809     261883    long       low          notgood
+    ...         ...     ...       ...              ...
+    1986     995103  recent       low        potential
+    1994     646494  recent       low        potential
+    918     1150086  recent  veryhigh         verygood
+    301      530559  recent      high         verygood
+    2266     152963  recent      high         verygood
+    
+    [11719 rows x 4 columns]
+    
+
+
+```python
+
+```
+
+<font color='lightgreen' size='3'> Dari data tersebut diatas, saya coba menginterpretasikan karakter visitor menjadi 4 level yaitu:
+    <font color='yellow' size='4'>very good, normal, potential, dan not good
+     
+<font color='lightgreen' size='3'> Dengan kategori:
+    
+ <font color='yellow' size='3'>   very good <font color='lightgreen' size='3'>--> R_score: recent, dan F_score: high atau very high,
+    
+<font color='yellow' size='3'> normal <font color='lightgreen' size='3'>--> R_score: normal dan F_score : medium or high , atau R_score: high dan F_score : medium
+    
+<font color='yellow' size='3'> potential <font color='lightgreen' size='3'>--> R_score dan F_score : diluar kombinasi very good, normal dan not good
+
+<font color='yellow' size='3'> not good  <font color='lightgreen' size='3'>--> R_score: normal or long or very long, dan F_score: low
+    
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+<font color='yellow' size='3'># Menghitung jumlah transaksi terhadap masing-masing karakter_visitor dari seluruh data
+
+
+```python
+total_transaksi = len(df_rf)
+
+# Menghitung jumlah transaksi dan persentase untuk setiap karakter_visitor
+result = df_rf.groupby('karakter_visitor').agg({
+    'jumlah_transaksi': ['min', 'max', 'mean', 'median', 'count'],
+})
+
+# Menghitung persentase jumlah transaksi
+result['persentase_transaksi'] = (result['jumlah_transaksi']['count'] / total_transaksi).apply(lambda x: '{:.2%}'.format(x))
+result
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead tr th {
+        text-align: left;
+    }
+
+    .dataframe thead tr:last-of-type th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th></th>
+      <th colspan="5" halign="left">jumlah_transaksi</th>
+      <th>persentase_transaksi</th>
+    </tr>
+    <tr>
+      <th></th>
+      <th>min</th>
+      <th>max</th>
+      <th>mean</th>
+      <th>median</th>
+      <th>count</th>
+      <th></th>
+    </tr>
+    <tr>
+      <th>karakter_visitor</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>normal</th>
+      <td>145</td>
+      <td>188</td>
+      <td>166.500000</td>
+      <td>166.5</td>
+      <td>2</td>
+      <td>0.02%</td>
+    </tr>
+    <tr>
+      <th>notgood</th>
+      <td>1</td>
+      <td>136</td>
+      <td>1.693850</td>
+      <td>1.0</td>
+      <td>8731</td>
+      <td>74.50%</td>
+    </tr>
+    <tr>
+      <th>potential</th>
+      <td>1</td>
+      <td>189</td>
+      <td>2.058666</td>
+      <td>1.0</td>
+      <td>2983</td>
+      <td>25.45%</td>
+    </tr>
+    <tr>
+      <th>verygood</th>
+      <td>286</td>
+      <td>559</td>
+      <td>398.000000</td>
+      <td>349.0</td>
+      <td>3</td>
+      <td>0.03%</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+<font color='yellow' size='3'> Memperlihatkan data mean masing-masing visitor: 
+
+
+```python
+# Menghitung jumlah transaksi (jumlah_transaksi) dan jumlah visitorid (count_visitorid) dari masing-masing F_score
+df_rf.groupby('F_score').agg({'jumlah_transaksi': ['min', 'max', 'mean', 'median', 'count']})
+
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead tr th {
+        text-align: left;
+    }
+
+    .dataframe thead tr:last-of-type th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th></th>
+      <th colspan="5" halign="left">jumlah_transaksi</th>
+    </tr>
+    <tr>
+      <th></th>
+      <th>min</th>
+      <th>max</th>
+      <th>mean</th>
+      <th>median</th>
+      <th>count</th>
+    </tr>
+    <tr>
+      <th>F_score</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>high</th>
+      <td>286</td>
+      <td>349</td>
+      <td>317.5000</td>
+      <td>317.5</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>low</th>
+      <td>1</td>
+      <td>136</td>
+      <td>1.7405</td>
+      <td>1.0</td>
+      <td>11711</td>
+    </tr>
+    <tr>
+      <th>medium</th>
+      <td>145</td>
+      <td>189</td>
+      <td>176.0000</td>
+      <td>185.0</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <th>veryhigh</th>
+      <td>559</td>
+      <td>559</td>
+      <td>559.0000</td>
+      <td>559.0</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+df_rf['jumlah_transaksi'] = df_rf['jumlah_transaksi'].apply(pd.to_numeric)
+df_rf.groupby('R_score').agg({'jumlah_transaksi':['min','max','mean','median','count']})
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead tr th {
+        text-align: left;
+    }
+
+    .dataframe thead tr:last-of-type th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th></th>
+      <th colspan="5" halign="left">jumlah_transaksi</th>
+    </tr>
+    <tr>
+      <th></th>
+      <th>min</th>
+      <th>max</th>
+      <th>mean</th>
+      <th>median</th>
+      <th>count</th>
+    </tr>
+    <tr>
+      <th>R_score</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>long</th>
+      <td>1</td>
+      <td>189</td>
+      <td>1.887614</td>
+      <td>1.0</td>
+      <td>2963</td>
+    </tr>
+    <tr>
+      <th>normal</th>
+      <td>1</td>
+      <td>145</td>
+      <td>1.807533</td>
+      <td>1.0</td>
+      <td>2894</td>
+    </tr>
+    <tr>
+      <th>recent</th>
+      <td>1</td>
+      <td>559</td>
+      <td>2.337802</td>
+      <td>1.0</td>
+      <td>2984</td>
+    </tr>
+    <tr>
+      <th>verylong</th>
+      <td>1</td>
+      <td>92</td>
+      <td>1.618138</td>
+      <td>1.0</td>
+      <td>2878</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+df_rf['jumlah_transaksi'] = df_rf['jumlah_transaksi'].apply(pd.to_numeric)
+df_rf.groupby('karakter_visitor').agg({'jumlah_transaksi':['min','max','mean','median','count']})
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead tr th {
+        text-align: left;
+    }
+
+    .dataframe thead tr:last-of-type th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr>
+      <th></th>
+      <th colspan="5" halign="left">jumlah_transaksi</th>
+    </tr>
+    <tr>
+      <th></th>
+      <th>min</th>
+      <th>max</th>
+      <th>mean</th>
+      <th>median</th>
+      <th>count</th>
+    </tr>
+    <tr>
+      <th>karakter_visitor</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>normal</th>
+      <td>145</td>
+      <td>188</td>
+      <td>166.500000</td>
+      <td>166.5</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>notgood</th>
+      <td>1</td>
+      <td>136</td>
+      <td>1.693850</td>
+      <td>1.0</td>
+      <td>8731</td>
+    </tr>
+    <tr>
+      <th>potential</th>
+      <td>1</td>
+      <td>189</td>
+      <td>2.058666</td>
+      <td>1.0</td>
+      <td>2983</td>
+    </tr>
+    <tr>
+      <th>verygood</th>
+      <td>286</td>
+      <td>559</td>
+      <td>398.000000</td>
+      <td>349.0</td>
+      <td>3</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+<font color='yellow' size='3'> Menampilkan visualisasi dengan Bar chart dan Histogram, mendapatkan insight dari <font color='lightblue' size='5'>karakter visitor : 
+
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Menghitung jumlah data untuk setiap karakter_visitor
+character_counts = df_rf['karakter_visitor'].value_counts()
+
+# Menghitung total jumlah data dalam dataset
+total_data = len(df_rf)
+
+# Menghitung persentase masing-masing karakter_visitor
+character_percentages = (character_counts / total_data) * 100
+
+# Mengurutkan persentase karakter_visitor berdasarkan nilai tertinggi
+character_percentages = character_percentages.sort_values(ascending=False)
+
+# Membuat bar chart
+plt.figure(figsize=(10, 6))
+ax = character_percentages.plot(kind='bar', color='skyblue', edgecolor='none')
+
+# Menambahkan nilai di atas setiap bar
+for p in ax.patches:
+    ax.annotate(f'{p.get_height():.2f}%', (p.get_x() + p.get_width() / 2, p.get_height()),
+                ha='center', va='bottom', fontsize=10, color='black')
+
+# Menghilangkan garis bingkai atas dan samping kanan
+ax.spines['top'].set_visible(False)
+ax.spines['right'].set_visible(False)
+
+# Menambahkan judul dan label
+plt.title('Persentase Karakter Visitor')
+plt.xlabel('Karakter Visitor')
+plt.ylabel('Persentase (%)')
+
+# Menampilkan bar chart
+plt.xticks(rotation=0)  # Mengatur rotasi label sumbu x agar lebih mudah dibaca
+plt.tight_layout()
+plt.show()
+
+
+
+```
+
+
+    
+![png](output_93_0.png)
+    
+
+
+<font color='yellow' size='3'> Menghitung kontribusi masing-masing F_score dan R_score terhadap karakter_visitor: 
+
+
+```python
+import pandas as pd
+
+# Menggunakan DataFrame df_rf yang sudah ada
+df_count = df_rf.groupby(['F_score', 'R_score', 'karakter_visitor']).size().reset_index(name='Count')
+
+print(df_count)
+```
+
+        F_score   R_score karakter_visitor  Count
+    0      high    recent         verygood      2
+    1       low      long          notgood   2960
+    2       low    normal          notgood   2893
+    3       low    recent        potential   2980
+    4       low  verylong          notgood   2878
+    5    medium      long        potential      3
+    6    medium    normal           normal      1
+    7    medium    recent           normal      1
+    8  veryhigh    recent         verygood      1
+    
+
+<font color='yellow' size='3'> Visualisasi : 
+
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Pivot DataFrame untuk membuat tabel pivot
+pivot_df = df_count.pivot_table(index='karakter_visitor', columns=['F_score', 'R_score'], values='Count', fill_value=0)
+
+# Membuat grafik bar chart stack
+ax = pivot_df.plot(kind='bar', stacked=True, figsize=(10, 6))
+
+# Menambahkan label dan judul
+plt.xlabel('karakter_visitor', ha='center')  # Penyelarasan horizontal di tengah
+plt.ylabel('Jumlah Kontribusi')
+plt.title('Kontribusi Kombinasi Level F_score dan R_score Terhadap karakter_visitor')
+
+# Menampilkan legenda di luar plot
+plt.legend(title=('F_score', 'R_score'), bbox_to_anchor=(1.05, 1), loc='upper left')
+
+# Menambahkan visual data di setiap bar
+for container in ax.containers:
+    ax.bar_label(container, fmt='%d', label_type='edge', fontsize=8, padding=4)  # Menambahkan label di pinggir
+
+plt.xticks(rotation=0)  # Mengatur keterangan label sumbu x menjadi horizontal
+plt.show()
+```
+
+
+    
+![png](output_97_0.png)
+    
+
+
+
+```python
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Membuat histogram R_score terhadap karakter_visitor
+plt.figure(figsize=(10, 6))
+ax = sns.histplot(data=df_rf, x='R_score', hue='karakter_visitor', multiple='stack')
+plt.title('Histogram R_score terhadap Karakter Visitor')
+plt.xlabel('R_score')
+plt.ylabel('Jumlah')
+
+# Mendapatkan nama karakter_visitor unik
+karakter_visitor_unique = df_rf['karakter_visitor'].unique()
+
+# Menampilkan nama karakter_visitor di legenda
+plt.legend(labels=karakter_visitor_unique, title='Karakter Visitor')
+
+# Menambahkan keterangan data di atas setiap bar
+for p in ax.patches:
+    height = p.get_height()
+    ax.annotate(f'{int(height)}', (p.get_x() + p.get_width() / 2., height),
+                ha='center', va='baseline', fontsize=10, color='black', xytext=(0, 5),
+                textcoords='offset points')
+
+plt.show()
+
+# Membuat histogram F_score terhadap karakter_visitor
+plt.figure(figsize=(10, 6))
+ax = sns.histplot(data=df_rf, x='F_score', hue='karakter_visitor', multiple='stack')
+plt.title('Histogram F_score terhadap Karakter Visitor')
+plt.xlabel('F_score')
+plt.ylabel('Jumlah')
+
+# Menampilkan nama karakter_visitor di legenda
+plt.legend(labels=karakter_visitor_unique, title='Karakter Visitor')
+
+# Menambahkan keterangan data di atas setiap bar
+for p in ax.patches:
+    height = p.get_height()
+    ax.annotate(f'{int(height)}', (p.get_x() + p.get_width() / 2., height),
+                ha='center', va='baseline', fontsize=10, color='black', xytext=(0, 5),
+                textcoords='offset points')
+
+plt.show()
+
+```
+
+
+    
+![png](output_98_0.png)
+    
+
+
+
+    
+![png](output_98_1.png)
+    
+
+
+
+```python
+
+```
+
+<font color='lightgreen' size='3'> Insight, karakter visitor beserta rekomendasi :
+
+<font color='lightblue'><u>Distribusi R_score dan F_score:</u>   
+Dari histogram R_score, kita dapat melihat bahwa sebagian besar karakter_visitor memiliki R_score yang rendah (notgood) dan F_score yang rendah. Sebaliknya, karakter_visitor dengan F_score tinggi (verygood) memiliki frekuensi yang sangat rendah.   
+Rekomendasi: Perlu diperhatikan bahwa mayoritas karakter_visitor termasuk dalam kategori "notgood." Mungkin ada peluang untuk meningkatkan R_score dan F_score karakter_visitor dengan strategi pemasaran atau layanan yang sesuai.   
+    
+<font color='lightblue'><u>Karakter Visitor "Normal":</u>     
+Meskipun jumlah karakter_visitor "normal" sangat sedikit, mereka memiliki R_score dan F_score yang tinggi. Ini menunjukkan bahwa meskipun jumlahnya sedikit, karakter_visitor "normal" memiliki tingkat keterlibatan yang tinggi.   
+Rekomendasi: Identifikasi apa yang membuat karakter_visitor "normal" begitu terlibat, dan coba terapkan strategi yang berhasil pada kelompok ini pada karakter_visitor lainnya.    
+
+<font color='lightblue'><u>Karakter Visitor "Verygood":</u>    
+Meskipun jumlah karakter_visitor "verygood" sangat sedikit, mereka memiliki R_score dan F_score yang sangat tinggi. Ini menunjukkan bahwa kelompok ini adalah yang paling terlibat.    
+Rekomendasi: Telusuri lebih lanjut mengapa karakter_visitor "verygood" memiliki skor yang sangat tinggi. Apakah ada faktor tertentu yang mempengaruhi keterlibatan mereka? Coba identifikasi dan terapkan faktor-faktor tersebut pada karakter_visitor lainnya.    
+    
+<font color='lightblue'><u>Karakter Visitor "Notgood":</u>    
+Sebagian besar karakter_visitor termasuk dalam kategori "notgood," yang memiliki R_score dan F_score yang rendah.    
+Rekomendasi: Perlu dilakukan analisis lebih lanjut tentang mengapa karakter_visitor "notgood" memiliki skor yang rendah. Mungkin diperlukan strategi untuk meningkatkan keterlibatan dan interaksi mereka dengan produk atau layanan.    
+
+<font color='lightblue'>Penting untuk terus memantau dan menganalisis data karakter_visitor untuk mengidentifikasi tren, peluang, dan strategi yang dapat meningkatkan keterlibatan dan konversi karakter_visitor ke dalam tindakan yang diinginkan. Dengan lebih memahami karakter_visitor dapat mengoptimalkan strategi pemasaran dan layanan untuk meningkatkan hasil bisnis.   
+    
+<font color='lightblue'><u>Karakter Visitor "Potential":</u>     
+Jumlah yang Signifikan: Meskipun karakter_visitor "potential" hanya menyumbang sekitar 25.45% dari total karakter_visitor, jumlahnya cukup signifikan. Ini menunjukkan bahwa ada peluang besar untuk mengkonversi lebih banyak karakter_visitor "potential" menjadi pelanggan aktif.    
+Rekomendasi: Fokuskan upaya pemasaran dan retensi pada karakter_visitor "potential." Identifikasi faktor-faktor yang mungkin menghambat mereka untuk melakukan tindakan lebih lanjut, seperti pembelian, dan berikan insentif atau penawaran khusus kepada kelompok ini untuk meningkatkan konversi.    
+Tingkatkan upaya untuk meningkatkan keterlibatan karakter_visitor "potential." Ini dapat mencakup strategi pemasaran yang lebih personal, rekomendasi produk yang relevan, atau insentif yang lebih menarik untuk melakukan tindakan tertentu.    
+
+<font color='lightblue'><u>Analisis Lebih Lanjut dari Visitor "Potential":</u>       
+Lakukan analisis lebih mendalam untuk memahami apa yang membuat karakter_visitor "potential" tidak segera melakukan tindakan yang diinginkan. Ini dapat melibatkan survei, wawancara, atau pemantauan perilaku mereka lebih lanjut.    
+Rekomendasi: Identifikasi hambatan atau tantangan khusus yang dihadapi oleh karakter_visitor "potential." Apakah ada masalah dengan navigasi situs web, kurangnya penawaran menarik, atau kebutuhan informasi tambahan? Berdasarkan hasil analisis ini, buat strategi yang sesuai untuk mengatasi masalah tersebut.
+
+<font color='lightblue'><u>Sesuaikan Pesan dan Konten dari Visitor "Potential":</u>      
+Sesuaikan pesan pemasaran dan konten dengan karakter_visitor "potential." Pastikan bahwa pesan yang dikirimkan kepada mereka relevan dengan kebutuhan dan minat mereka.    
+Rekomendasi: Buat kampanye pemasaran yang disesuaikan dengan karakter_visitor "potential." Ini bisa berupa penawaran eksklusif, rekomendasi produk yang relevan, atau panduan langkah demi langkah tentang cara memanfaatkan produk atau layanan.
+
+
+```python
+
+```
+
+
+```python
+
+```
+
+<font color='white' size='6'> ADDITIONAL : 
+
+
+```python
+
+```
+
+<font color='lightgreen' size='5'> # RETENTION-RATE
+
+<font color='lightgreen' size='3'> Mencari tahu nilai retention-rate dari data yang ada lalu memvisualisasikan dan mendapatkan insight serta rekomendasi 
+
+
+```python
+import pandas as pd
+
+# Pastikan kolom 'timestamp' dalam tipe data datetime
+df_rf['timestamp'] = pd.to_datetime(df_rf['timestamp'])
+
+# Membuat DataFrame baru retention_data
+retention_data = pd.DataFrame()
+
+# Menyalin kolom 'visitorid' dan 'timestamp' dari df_rf
+retention_data['visitorid'] = df_rf['visitorid']
+retention_data['timestamp'] = df_rf['timestamp']
+
+# Menghapus duplikasi entri untuk menghindari penghitungan ganda
+retention_data = retention_data.drop_duplicates()
+
+# Menambahkan kolom 'date' ke retention_data
+retention_data['date'] = retention_data['timestamp'].dt.date
+
+# Menghitung jumlah visitor unik per tanggal
+daily_unique_visitors = retention_data.groupby('date')['visitorid'].nunique()
+
+# Menghitung retention rate harian
+initial_visitor_count = daily_unique_visitors.iloc[0]
+retention_rate = (daily_unique_visitors / initial_visitor_count) * 100
+
+# Menampilkan beberapa baris pertama dari retention_data dan retention rate
+retention_data['retention_rate'] = retention_data['date'].map(retention_rate)
+print(retention_data.head())
+retention_data
+```
+
+          visitorid               timestamp        date  retention_rate
+    1400     861299 2015-08-19 02:23:13.383  2015-08-19      227.659574
+    3623     890980 2015-07-28 23:57:08.618  2015-07-28      306.382979
+    5859     453995 2015-08-02 17:08:53.493  2015-08-02      129.787234
+    7808     197591 2015-06-13 16:34:36.855  2015-06-13       80.851064
+    7809     261883 2015-06-18 02:39:55.816  2015-06-18      255.319149
+    
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>visitorid</th>
+      <th>timestamp</th>
+      <th>date</th>
+      <th>retention_rate</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1400</th>
+      <td>861299</td>
+      <td>2015-08-19 02:23:13.383</td>
+      <td>2015-08-19</td>
+      <td>227.659574</td>
+    </tr>
+    <tr>
+      <th>3623</th>
+      <td>890980</td>
+      <td>2015-07-28 23:57:08.618</td>
+      <td>2015-07-28</td>
+      <td>306.382979</td>
+    </tr>
+    <tr>
+      <th>5859</th>
+      <td>453995</td>
+      <td>2015-08-02 17:08:53.493</td>
+      <td>2015-08-02</td>
+      <td>129.787234</td>
+    </tr>
+    <tr>
+      <th>7808</th>
+      <td>197591</td>
+      <td>2015-06-13 16:34:36.855</td>
+      <td>2015-06-13</td>
+      <td>80.851064</td>
+    </tr>
+    <tr>
+      <th>7809</th>
+      <td>261883</td>
+      <td>2015-06-18 02:39:55.816</td>
+      <td>2015-06-18</td>
+      <td>255.319149</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>1986</th>
+      <td>995103</td>
+      <td>2015-08-21 21:30:26.816</td>
+      <td>2015-08-21</td>
+      <td>140.425532</td>
+    </tr>
+    <tr>
+      <th>1994</th>
+      <td>646494</td>
+      <td>2015-08-18 20:19:25.379</td>
+      <td>2015-08-18</td>
+      <td>229.787234</td>
+    </tr>
+    <tr>
+      <th>918</th>
+      <td>1150086</td>
+      <td>2015-09-17 00:24:58.943</td>
+      <td>2015-09-17</td>
+      <td>61.702128</td>
+    </tr>
+    <tr>
+      <th>301</th>
+      <td>530559</td>
+      <td>2015-09-12 23:16:45.863</td>
+      <td>2015-09-12</td>
+      <td>127.659574</td>
+    </tr>
+    <tr>
+      <th>2266</th>
+      <td>152963</td>
+      <td>2015-09-18 02:43:12.017</td>
+      <td>2015-09-18</td>
+      <td>17.021277</td>
+    </tr>
+  </tbody>
+</table>
+<p>11719 rows × 4 columns</p>
+</div>
+
+
+
+
+```python
+
+```
+
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Pastikan kolom 'timestamp' dalam tipe data datetime
+df_rf['timestamp'] = pd.to_datetime(df_rf['timestamp'])
+
+# Membuat DataFrame baru retention_data
+retention_data = pd.DataFrame()
+
+# Menyalin kolom 'visitorid' dan 'timestamp' dari df_rf
+retention_data['visitorid'] = df_rf['visitorid']
+retention_data['timestamp'] = df_rf['timestamp']
+
+# Menghapus duplikasi entri untuk menghindari penghitungan ganda
+retention_data = retention_data.drop_duplicates()
+
+# Menambahkan kolom 'date' ke retention_data
+retention_data['date'] = retention_data['timestamp'].dt.date
+
+# Menghitung jumlah visitor unik per tanggal
+daily_unique_visitors = retention_data.groupby('date')['visitorid'].nunique()
+
+# Menghitung retention rate harian dalam persen
+initial_visitor_count = daily_unique_visitors.iloc[0]
+retention_rate = (daily_unique_visitors / initial_visitor_count) * 100
+
+# Konversi indeks ke tipe DateTimeIndex
+retention_rate.index = pd.to_datetime(retention_rate.index)
+
+# Resample data menjadi mingguan
+weekly_retention_rate = retention_rate.resample('W').mean()
+
+# Membuat moving average dengan jendela 7 hari
+moving_average = retention_rate.rolling(window=7).mean()
+
+# Menampilkan beberapa baris pertama dari data retention rate
+print("Data Retention Rate Harian:")
+print(retention_rate.head())
+
+# Menampilkan beberapa baris pertama dari data retention rate mingguan
+print("\nData Retention Rate Mingguan:")
+print(weekly_retention_rate.head())
+
+# Menampilkan beberapa baris pertama dari data moving average
+print("\nData Moving Average (7 Hari):")
+print(moving_average.head())
+
+```
+
+    Data Retention Rate Harian:
+    date
+    2015-05-03    100.000000
+    2015-05-04    195.744681
+    2015-05-05    282.978723
+    2015-05-06    265.957447
+    2015-05-07    208.510638
+    Name: visitorid, dtype: float64
+    
+    Data Retention Rate Mingguan:
+    date
+    2015-05-03    100.000000
+    2015-05-10    180.547112
+    2015-05-17    198.784195
+    2015-05-24    167.477204
+    2015-05-31    179.635258
+    Freq: W-SUN, Name: visitorid, dtype: float64
+    
+    Data Moving Average (7 Hari):
+    date
+    2015-05-03   NaN
+    2015-05-04   NaN
+    2015-05-05   NaN
+    2015-05-06   NaN
+    2015-05-07   NaN
+    Name: visitorid, dtype: float64
+    
+
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Pastikan kolom 'timestamp' dalam tipe data datetime
+df_rf['timestamp'] = pd.to_datetime(df_rf['timestamp'])
+
+# Membuat DataFrame baru retention_data
+retention_data = pd.DataFrame()
+
+# Menyalin kolom 'visitorid' dan 'timestamp' dari df_rf
+retention_data['visitorid'] = df_rf['visitorid']
+retention_data['timestamp'] = df_rf['timestamp']
+
+# Menghapus duplikasi entri untuk menghindari penghitungan ganda
+retention_data = retention_data.drop_duplicates()
+
+# Menambahkan kolom 'date' ke retention_data
+retention_data['date'] = retention_data['timestamp'].dt.date
+
+# Menghitung jumlah visitor unik per tanggal
+daily_unique_visitors = retention_data.groupby('date')['visitorid'].nunique()
+
+# Menghitung retention rate harian dalam persen
+initial_visitor_count = daily_unique_visitors.iloc[0]
+retention_rate = (daily_unique_visitors / initial_visitor_count) * 100
+
+# Konversi indeks ke tipe DateTimeIndex
+retention_rate.index = pd.to_datetime(retention_rate.index)
+
+# Resample data menjadi mingguan
+weekly_retention_rate = retention_rate.resample('W').mean()
+
+# Membuat moving average dengan jendela 7 hari
+moving_average = retention_rate.rolling(window=7).mean()
+
+# Memvisualisasikan retention rate harian yang telah diresample dan moving average
+plt.figure(figsize=(12, 6))
+plt.plot(retention_rate.index, retention_rate.values, marker='o', linestyle='-', label='Harian')
+plt.plot(weekly_retention_rate.index, weekly_retention_rate.values, marker='o', linestyle='-', label='Mingguan')
+plt.plot(moving_average.index, moving_average.values, marker='', linestyle='-', label='Moving Average (7 Hari)')
+plt.title('Retention Rate Harian')
+plt.xlabel('Tanggal')
+plt.ylabel('Retention Rate (%)')
+plt.xticks(rotation=45)
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+```
+
+
+    
+![png](output_111_0.png)
+    
+
+
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Pastikan kolom 'timestamp' dalam tipe data datetime
+df_rf['timestamp'] = pd.to_datetime(df_rf['timestamp'])
+
+# Membuat DataFrame baru retention_data
+retention_data = pd.DataFrame()
+
+# Menyalin kolom 'visitorid' dan 'timestamp' dari df_rf
+retention_data['visitorid'] = df_rf['visitorid']
+retention_data['timestamp'] = df_rf['timestamp']
+
+# Menghapus duplikasi entri untuk menghindari penghitungan ganda
+retention_data = retention_data.drop_duplicates()
+
+# Menambahkan kolom 'date' ke retention_data
+retention_data['date'] = retention_data['timestamp'].dt.date
+
+# Menghitung jumlah visitor unik per tanggal
+daily_unique_visitors = retention_data.groupby('date')['visitorid'].nunique()
+
+# Menghitung retention rate harian
+initial_visitor_count = daily_unique_visitors.iloc[0]
+retention_rate = (daily_unique_visitors / initial_visitor_count) * 100
+
+# Set indeks retention_rate ke dalam tipe data datetime
+retention_rate.index = pd.to_datetime(retention_rate.index)
+
+# Menggabungkan data harian ke dalam data bulanan
+retention_rate_monthly = retention_rate.resample('M').mean()
+
+# Membuat line chart
+plt.figure(figsize=(12, 6))
+plt.plot(retention_rate_monthly.index, retention_rate_monthly.values, marker='o', linestyle='-', color='b')
+plt.title('Retention Rate Bulanan', fontsize=16)
+plt.xlabel('Bulan', fontsize=12)
+plt.ylabel('Retention Rate (%)', fontsize=12)
+plt.xticks(rotation=45)
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+
+```
+
+
+    
+![png](output_112_0.png)
+    
+
+
+
+```python
+retention_rate_monthly
+```
+
+
+
+
+    date
+    2015-05-31    178.796772
+    2015-06-30    187.163121
+    2015-07-31    199.519561
+    2015-08-31    167.879204
+    2015-09-30    152.482270
+    Freq: M, Name: visitorid, dtype: float64
+
+
+
+
+```python
+
+```
+
+<font color='lightgreen' size='3'> Insight beserta rekomendasi :
+
+<font color='lightblue'><u>Fluktuasi Retention Rate:</u>     
+Terdapat fluktuasi dalam retention rate selama periode lima bulan. Retention rate tertinggi terjadi pada bulan Juli, sedangkan bulan Mei memiliki retention rate yang paling rendah.    
+Rekomendasi: Menyelidiki penyebab fluktuasi ini dan mencoba untuk menjaga retention rate tetap konsisten atau meningkat seiring waktu.
+
+<font color='lightblue'><u>Retention Rate Lebih Tinggi Pada Bulan Juli:</u>       
+Bulan Juli memiliki retention rate tertinggi, ini bisa menjadi indikasi bahwa ada beberapa strategi pemasaran atau insentif yang berhasil pada bulan tersebut.    
+Rekomendasi: Menganalisis strategi pemasaran dan insentif yang digunakan pada bulan Juli untuk memahami mengapa retention rate lebih tinggi dan mempertimbangkan untuk menerapkannya di bulan-bulan lain.
+
+<font color='lightblue'><u>Penurunan Retention Rate Menuju Akhir Tahun:</u>       
+Retention rate cenderung menurun sejak Juli hingga September. Ini bisa menjadi peringatan bahwa ada penurunan minat pengunjung atau perubahan perilaku pelanggan selama periode ini.    
+Rekomendasi: Mengidentifikasi penyebab penurunan ini dan mencoba untuk membalikkan tren ini dengan strategi pemasaran atau peningkatan layanan.
+
+<font color='lightblue'><u>Konsistensi Retention Rate pada Bulan Agustus dan September:</u>       
+Meskipun ada fluktuasi bulanan, retention rate pada bulan Agustus dan September relatif konsisten.    
+Rekomendasi: Meneliti faktor-faktor yang mendukung konsistensi retention rate pada bulan Agustus dan September dan mencoba menerapkan elemen-elemen ini di bulan-bulan lain.
+
+<font color='lightblue'><u>Analisis Data Harian:</u>       
+Meskipun kita memvisualisasikan data retention rate bulanan, juga penting untuk menganalisis data harian untuk memahami tren dan perubahan dalam perilaku pengunjung secara lebih rinci.    
+Rekomendasi: Melakukan analisis data harian secara lebih mendalam untuk mengidentifikasi pola dan tren yang lebih spesifik yang dapat membantu dalam pengambilan keputusan.    
+
+<font color='lightblue'><u>Analisis Lebih Lanjut:</u>       
+Perlu dilakukan analisis lebih lanjut untuk memahami faktor-faktor yang mempengaruhi fluktuasi harian dalam retention rate. Dapatkah identifikasi penyebab fluktuasi ini membantu dalam meningkatkan retensi?    
+
+<font color='lightblue'><u>Segmentasi Pengunjung:</u>       
+Melakukan segmentasi pengunjung untuk memahami karakteristik dan perilaku kelompok pengunjung yang berbeda. Ini dapat membantu menargetkan upaya retensi ke kelompok yang paling berpotensi untuk tetap aktif.    
+
+<font color='lightblue'><u>Penelitian Mengenai Penurunan Retensi:</u>      
+Penurunan signifikan dalam retensi mingguan pada tanggal 10 Mei mungkin perlu diteliti lebih lanjut. Apakah ada perubahan dalam pengalaman pengguna atau faktor eksternal yang mempengaruhi penurunan tersebut?
+
+<font color='lightblue'><u>Strategi Peningkatan Retensi:</u>      
+Berdasarkan temuan ini dapat mengembangkan strategi peningkatan retensi yang lebih fokus pada pertahankan pengunjung dalam minggu pertama dan minggu berikutnya setelah mereka pertama kali mengunjungi situs.
+
+
+```python
+
+```
+
+<font color='lightgreen' size='5'> # CHURN-RATE
+
+<font color='lightgreen' size='3'> Memeriksa dan menghitung nilai churn-rate (kriteria visitor churn ditentukan dengan R_score kategori long dan verylong) lalu memvisualisasikan dan mendapatkan insight serta rekomendasi:
+
+
+```python
+df_recency
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>visitorid</th>
+      <th>timestamp</th>
+      <th>days_to_today</th>
+      <th>recency_group</th>
+      <th>R_score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>172</td>
+      <td>2015-08-15 01:29:01.686</td>
+      <td>34</td>
+      <td>1</td>
+      <td>recent</td>
+    </tr>
+    <tr>
+      <th>9182</th>
+      <td>1109812</td>
+      <td>2015-08-14 20:56:42.941</td>
+      <td>34</td>
+      <td>1</td>
+      <td>recent</td>
+    </tr>
+    <tr>
+      <th>3797</th>
+      <td>463466</td>
+      <td>2015-09-06 22:51:40.367</td>
+      <td>11</td>
+      <td>1</td>
+      <td>recent</td>
+    </tr>
+    <tr>
+      <th>3798</th>
+      <td>463688</td>
+      <td>2015-09-09 17:00:01.346</td>
+      <td>8</td>
+      <td>1</td>
+      <td>recent</td>
+    </tr>
+    <tr>
+      <th>3799</th>
+      <td>463740</td>
+      <td>2015-08-23 06:27:07.719</td>
+      <td>25</td>
+      <td>1</td>
+      <td>recent</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>8977</th>
+      <td>1085571</td>
+      <td>2015-05-04 14:23:41.490</td>
+      <td>136</td>
+      <td>4</td>
+      <td>verylong</td>
+    </tr>
+    <tr>
+      <th>8978</th>
+      <td>1085620</td>
+      <td>2015-05-12 12:39:33.715</td>
+      <td>128</td>
+      <td>4</td>
+      <td>verylong</td>
+    </tr>
+    <tr>
+      <th>4116</th>
+      <td>503857</td>
+      <td>2015-06-05 02:04:34.276</td>
+      <td>105</td>
+      <td>4</td>
+      <td>verylong</td>
+    </tr>
+    <tr>
+      <th>4134</th>
+      <td>505988</td>
+      <td>2015-05-04 15:47:11.345</td>
+      <td>136</td>
+      <td>4</td>
+      <td>verylong</td>
+    </tr>
+    <tr>
+      <th>5859</th>
+      <td>718314</td>
+      <td>2015-06-01 03:17:20.592</td>
+      <td>108</td>
+      <td>4</td>
+      <td>verylong</td>
+    </tr>
+  </tbody>
+</table>
+<p>11719 rows × 5 columns</p>
+</div>
+
+
+
+<font color='lightgreen' size='3'> Total churn rate dari dataframe :
+
+
+```python
+import pandas as pd
+
+# Menghitung jumlah visitor dengan R_score 'long' atau 'verylong'
+total_visitors_long = len(df_recency[df_recency['R_score'].isin(['long', 'verylong'])])
+
+# Menghitung jumlah visitor keseluruhan
+total_visitors = len(df_recency)
+
+# Menghitung churn rate
+churn_rate = (total_visitors_long / total_visitors) * 100
+
+print(f"Churn Rate berdasarkan R_score 'long' atau 'verylong': {churn_rate:.2f}%")
+
+```
+
+    Churn Rate berdasarkan R_score 'long' atau 'verylong': 49.84%
+    
+
+
+```python
+
+```
+
+<font color='lightgreen' size='3'> Total churn rate tiap bulan :
+
+
+```python
+import pandas as pd
+
+# Menghitung churn rate tiap bulan dengan kriteria R_score 'long' atau 'verylong'
+def calculate_churn_rate(df):
+    # Menggabungkan df_recency dan df_frequency berdasarkan kolom 'visitorid'
+    df_rf = df_recency.merge(df_frequency, on='visitorid')
+
+    # Kriteria untuk R_score 'long' atau 'verylong' (days_to_today >= 71)
+    churn_criteria = (df_rf['R_score'].isin(['long', 'verylong']))
+
+    # Membuat kolom baru 'churned' berdasarkan kriteria churn
+    df_rf['churned'] = churn_criteria
+
+    # Mengelompokkan data berdasarkan bulan dan menghitung total pengunjung dan jumlah churned
+    monthly_data = df_rf.groupby(df_rf['timestamp'].dt.to_period('M')).agg(
+        total_pengunjung=pd.NamedAgg(column='visitorid', aggfunc='nunique'),
+        pengunjung_churn=pd.NamedAgg(column='churned', aggfunc='sum')
+    ).reset_index()
+
+    # Menghitung churn rate tiap bulan
+    monthly_data['churn_rate'] = (monthly_data['pengunjung_churn'] / monthly_data['total_pengunjung']) * 100
+
+    return monthly_data
+
+# Menampilkan hasil churn rate tiap bulan
+churn_rate_data = calculate_churn_rate(df_rf)
+print(churn_rate_data)
+
+```
+
+      timestamp  total_pengunjung  pengunjung_churn  churn_rate
+    0   2015-05              2437              2437  100.000000
+    1   2015-06              2639              2639  100.000000
+    2   2015-07              2907               765   26.315789
+    3   2015-08              2446                 0    0.000000
+    4   2015-09              1290                 0    0.000000
+    
+
+<font color='lightgreen' size='3'> Total churn rate tiap bulan lebih detail :
+
+
+```python
+import pandas as pd
+
+# Menghitung churn rate tiap bulan dengan kriteria R_score 'long' atau 'verylong'
+def calculate_churn_rate(df):
+    # Kriteria untuk R_score 'long' atau 'verylong' (days_to_today >= 71)
+    churn_criteria = df['R_score'].isin(['long', 'verylong', 'normal', 'recent'])
+
+    # Membuat kolom baru 'churned' berdasarkan kriteria churn
+    df['churned'] = churn_criteria
+
+    # Mengelompokkan data berdasarkan bulan dan R_score, dan menghitung total pengunjung
+    monthly_data = df.groupby([df['timestamp'].dt.to_period('M'), 'R_score']).agg(
+        total_pengunjung=pd.NamedAgg(column='visitorid', aggfunc='nunique'),
+        pengunjung_churn=pd.NamedAgg(column='churned', aggfunc='sum')
+    ).reset_index()
+
+    # Menghitung churn rate tiap bulan
+    monthly_data['churn_rate'] = (monthly_data['pengunjung_churn'] / monthly_data['total_pengunjung']) * 100
+
+    # Menghitung total pengunjung keseluruhan tiap bulan
+    total_pengunjung_bulanan = monthly_data.groupby('timestamp')['total_pengunjung'].transform('sum')
+
+    # Menghitung persentase R_score terhadap total pengunjung tiap bulan
+    monthly_data['persentase_R_score'] = (monthly_data['total_pengunjung'] / total_pengunjung_bulanan) * 100
+
+    # Mengganti churn rate menjadi 0 jika R_score 'long' atau 'verylong' tidak ada
+    monthly_data.loc[~monthly_data['R_score'].isin(['long', 'verylong']), 'churn_rate'] = 0.0
+
+    return monthly_data
+
+# Menampilkan hasil churn rate tiap bulan
+churn_rate_detail = calculate_churn_rate(df_rf)
+churn_rate_detail
+
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>timestamp</th>
+      <th>R_score</th>
+      <th>total_pengunjung</th>
+      <th>pengunjung_churn</th>
+      <th>churn_rate</th>
+      <th>persentase_R_score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2015-05</td>
+      <td>verylong</td>
+      <td>2437</td>
+      <td>2437</td>
+      <td>100.0</td>
+      <td>100.000000</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2015-06</td>
+      <td>long</td>
+      <td>2198</td>
+      <td>2198</td>
+      <td>100.0</td>
+      <td>83.289125</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2015-06</td>
+      <td>verylong</td>
+      <td>441</td>
+      <td>441</td>
+      <td>100.0</td>
+      <td>16.710875</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2015-07</td>
+      <td>long</td>
+      <td>765</td>
+      <td>765</td>
+      <td>100.0</td>
+      <td>26.315789</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2015-07</td>
+      <td>normal</td>
+      <td>2142</td>
+      <td>2142</td>
+      <td>0.0</td>
+      <td>73.684211</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>2015-08</td>
+      <td>normal</td>
+      <td>752</td>
+      <td>752</td>
+      <td>0.0</td>
+      <td>30.744072</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>2015-08</td>
+      <td>recent</td>
+      <td>1694</td>
+      <td>1694</td>
+      <td>0.0</td>
+      <td>69.255928</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>2015-09</td>
+      <td>recent</td>
+      <td>1290</td>
+      <td>1290</td>
+      <td>0.0</td>
+      <td>100.000000</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+<font color='lightblue' size='5'> Visual-Grafik churn rate :
+
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Membuat plot bar untuk kontribusi persentase R_score terhadap churn rate
+plt.figure(figsize=(14, 8))
+
+# Mengelompokkan data berdasarkan bulan dan R_score, dan menghitung total pengunjung
+g = sns.barplot(x='timestamp', y='persentase_R_score', hue='R_score', data=churn_rate_detail)
+
+# Menambahkan label pada sumbu x dan y serta judul
+plt.xlabel('Bulan Tahun', fontsize=20)  # Ukuran label x diperbesar
+plt.ylabel('Persentase R_Score (%)', fontsize=20)  # Ukuran label y diperbesar
+plt.title('Kontribusi Persentase R_Score terhadap Churn Rate per Bulan', fontsize=24)  # Ukuran judul diperbesar
+
+# Menampilkan legenda dengan ukuran yang lebih besar dan posisi di tengah atas grafik
+plt.legend(title='R_Score', loc='upper center', fontsize='large')
+
+# Menghilangkan frame atas dan samping kanan grafik
+sns.despine(right=True, top=True)
+
+# Menampilkan nilai di tiap bar
+ax = g.axes
+for p in ax.patches:
+    ax.annotate(f'{p.get_height():.2f}%', (p.get_x() + p.get_width() / 2., p.get_height()),
+                ha='center', va='center', fontsize=12, color='black', xytext=(0, 5),
+                textcoords='offset points')
+
+# Menampilkan plot
+plt.xticks(rotation=0, fontsize=16)  # Ukuran keterangan nilai di sumbu x diperbesar
+plt.yticks(fontsize=16)  # Ukuran keterangan nilai di sumbu y diperbesar
+plt.tight_layout()
+plt.show()
+
+```
+
+
+    
+![png](output_129_0.png)
+    
+
+
+
+```python
+churn_rate_data
+```
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>timestamp</th>
+      <th>total_pengunjung</th>
+      <th>pengunjung_churn</th>
+      <th>churn_rate</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>2015-05</td>
+      <td>2437</td>
+      <td>2437</td>
+      <td>100.000000</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2015-06</td>
+      <td>2639</td>
+      <td>2639</td>
+      <td>100.000000</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>2015-07</td>
+      <td>2907</td>
+      <td>765</td>
+      <td>26.315789</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>2015-08</td>
+      <td>2446</td>
+      <td>0</td>
+      <td>0.000000</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>2015-09</td>
+      <td>1290</td>
+      <td>0</td>
+      <td>0.000000</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+
+
+```python
+import pandas as pd
+import matplotlib.pyplot as plt
+
+
+# Membuat plot bar untuk total pengunjung dan churn rate
+fig, ax1 = plt.subplots(figsize=(12, 6))
+
+# Bar chart untuk total pengunjung
+bar1 = ax1.bar(df_churn['timestamp'], churn_rate_data['total_pengunjung'], color='blue', label='Total Pengunjung')
+ax1.set_xlabel('Bulan Tahun', fontsize=14)
+ax1.set_ylabel('Total Pengunjung', color='blue', fontsize=14)
+
+# Bar chart untuk pengunjung churn
+bar2 = ax1.bar(df_churn['timestamp'], churn_rate_data['pengunjung_churn'], color='red', label='Pengunjung Churn', alpha=0.6)
+ax1.tick_params(axis='y', labelcolor='blue')
+
+# Membuat sumbu kedua untuk churn rate
+ax2 = ax1.twinx()
+ax2.plot(df_churn['timestamp'], churn_rate_data['churn_rate'], marker='o', color='green', label='Churn Rate', linestyle='dashed')
+ax2.set_ylabel('Churn Rate (%)', color='green', fontsize=14)
+
+# Menambahkan label pada setiap bar
+for i, (p1, p2) in enumerate(zip(bar1, bar2)):
+    total_pengunjung = churn_rate_data.loc[i, 'total_pengunjung']
+    churn_rate = churn_rate_data.loc[i, 'churn_rate']
+    ax1.text(p1.get_x() + p1.get_width() / 2, p1.get_height() + 50, f'{total_pengunjung}', ha='center', fontsize=12)
+    ax2.text(p2.get_x() + p2.get_width() / 2, churn_rate + 2, f'{churn_rate:.2f}%', ha='center', fontsize=12,
+             color='green')
+
+# Menambahkan judul
+plt.title('Total Pengunjung, Pengunjung Churn, dan Churn Rate per Bulan', fontsize=16)
+
+# Menampilkan legenda
+fig.legend(loc='upper left')
+
+# Menampilkan plot
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+```
+
+
+    
+![png](output_131_0.png)
+    
+
+
+<font color='lightgreen' size='3'>Insight dan rekomendasi:
+
+<font color='lightblue'><u>Perubahan Jumlah Pengunjung (total_pengunjung):</u>     
+Terlihat bahwa jumlah pengunjung berfluktuasi dari bulan ke bulan. Ada peningkatan signifikan pada bulan Juni dan Agustus, sementara bulan-bulan lainnya memiliki jumlah pengunjung yang lebih rendah.   
+Rekomendasi: Perlu dilakukan analisis lebih lanjut untuk memahami penyebab fluktuasi tersebut. Mungkin ada kampanye pemasaran atau peristiwa khusus yang memengaruhi jumlah pengunjung. Jika peningkatan pengunjung pada bulan tertentu positif, maka strategi yang sama dapat diulang di masa depan.    
+
+<font color='lightblue'><u>Churn Rate:</u>    
+Churn rate (persentase pengunjung yang berhenti berkunjung) pada bulan-bulan tertentu adalah 100%, yang berarti semua pengunjung yang datang pada bulan tersebut tidak kembali pada bulan berikutnya.    
+Rekomendasi: Perlu dilakukan analisis untuk mengidentifikasi mengapa semua pengunjung pada bulan tersebut berhenti berkunjung. Mungkin ada masalah dengan layanan atau pengalaman pengguna yang perlu diperbaiki. Jika tidak ada tindakan yang diambil, ini bisa mengarah pada penurunan jumlah pengunjung secara keseluruhan.    
+
+<font color='lightblue'><u>Rasio Pengunjung dengan R_score tertentu (persentase_R_score):</u>     
+Persentase pengunjung dengan R_score tertentu bervariasi dari bulan ke bulan. Ada bulan dengan 100% pengunjung memiliki R_score tertentu, sementara pada bulan lainnya, pengunjung memiliki distribusi R_score yang berbeda.        
+Rekomendasi: Analisis lebih lanjut diperlukan untuk memahami mengapa terjadi variasi dalam distribusi R_score. Rekomendasi dapat berupa peningkatan target pemasaran untuk pengunjung dengan R_score tertentu atau upaya untuk mengubah R_score pengunjung agar sesuai dengan tujuan bisnis.    
+
+<font color='lightblue'><u>Jumlah Pengunjung dengan R_score "normal":</u>     
+Jumlah pengunjung dengan R_score "normal" meningkat pada bulan Juli dan Agustus, sementara bulan-bulan lainnya memiliki jumlah yang lebih rendah.    
+Rekomendasi: Perlu dipahami apa yang menyebabkan peningkatan jumlah pengunjung dengan R_score "normal" pada bulan-bulan tersebut. Analisis lebih lanjut dapat membantu menentukan apakah ada faktor-faktor tertentu yang mempengaruhi kategori R_score ini, dan rekomendasi dapat dibuat untuk memperkuat kategori ini.
+
+
+```python
+
+```
